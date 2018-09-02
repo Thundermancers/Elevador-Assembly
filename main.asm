@@ -730,6 +730,7 @@ SEND_LOG:
 	push one
 	push cur_state
 	push send_byte
+	push temp
 
 	; Getting 
 	ldi zero, '0'
@@ -890,6 +891,7 @@ SEND_LOG:
 		rjmp while_test_log
 	while_end_log :
 
+	pop temp
 	pop send_byte
 	pop cur_state
 	pop one
