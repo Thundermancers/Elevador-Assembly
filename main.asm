@@ -458,34 +458,34 @@ TIMER_CALLBACK :
 	; Verify if wait time is active
 	lds temp, wait_time_flag
 	cpi temp, 1
-	breq end_if_timer_callback                                                      ; jump to end if
+	breq end_if_timer_callback						; jump to end if
 
 	; Function implementation
-	lds cur_state, state                                                            ; get current state
-	ldi temp, (1 << stateM)                                                         ; setting 0bxxx1
+	lds cur_state, state 							; get current state
+	ldi temp, (1 << stateM)							; setting 0bxxx1
 
 	begin_if_timer_callback :
-		and cur_state, temp                                                     ; checking moving bit
-		brne is_moving                                                          ; if M bit is set
-		rjmp is_not_moving                                                      ; if M bit is not set
+		and cur_state, temp 						; checking moving bit
+		brne is_moving 							; if M bit is set
+		rjmp is_not_moving 						; if M bit is not set
 
 	is_moving :
-		lds cnt, change_floor_cnt                                               ; load change floor count
-		inc cnt                                                                 ; increment count
-		sts change_floor_cnt, cnt                                               ; store the new value of change floor count
-		rjmp end_if_timer_callback                                              ; jump to end if
+		lds cnt, change_floor_cnt 					; load change floor count
+		inc cnt 							; increment count
+		sts change_floor_cnt, cnt 					; store the new value of change floor count
+		rjmp end_if_timer_callback 					; jump to end if
 
 	is_not_moving :
 		lds temp, door_flag
 		cpi temp, 0
 		breq end_if_timer_callback
-		lds cnt, door_cnt                                                       ; load door count
-		inc cnt                                                                 ; increment count
-		sts door_cnt, cnt                                                       ; store the new value of door count
+		lds cnt, door_cnt 						; load door count
+		inc cnt 							; increment count
+		sts door_cnt, cnt 						; store the new value of door count
 	
 	end_if_timer_callback :
 
-	rcall SEND_LOG                                                                  ; Call log
+	rcall SEND_LOG								; Call log
 
 	lds temp, wait_cnt
 	inc temp
@@ -524,8 +524,8 @@ INT0_CALLBACK :
 	push temp
 
 	; Function implementation
-	in pinb_bits, PINB                                                              ; getting pind pins
-	mov temp_pinb, pinb_bits                                                        ; copy pind bins to backup
+	in pinb_bits, PINB 							; getting pind pins
+	mov temp_pinb, pinb_bits 						; copy pind bins to backup
 
 	if_T_pressed_ele :
 		andi temp_pinb, (1 << BUTTON_ELE_T)
@@ -632,8 +632,8 @@ INT1_CALLBACK :
 	push temp
 
 	; Function implementation
-	in pind_bits, PIND                                                              ; getting pinb pins
-	mov temp_pind, pind_bits                                                        ; copy pinb bins to backup
+	in pind_bits, PIND 							; getting pinb pins
+	mov temp_pind, pind_bits 						; copy pinb bins to backup
 
 	if_T_pressed_outside :
 		andi temp_pind, (1 << BUTTON_OUTSIDE_T) 
@@ -704,7 +704,7 @@ INT1_CALLBACK :
 
 TRANSMIT:
 	lds empty, UCSR0A
-	sbrs empty, UDRE0                                                               ;wait for Tx buffer to be empty
+	sbrs empty, UDRE0							;wait for Tx buffer to be empty
 	rjmp TRANSMIT                                                                   ;not ready yet
 	sts UDR0, byte_tx                                                               ;transmit character
 
