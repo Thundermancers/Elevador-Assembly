@@ -705,8 +705,8 @@ INT1_CALLBACK :
 TRANSMIT:
 	lds empty, UCSR0A
 	sbrs empty, UDRE0							;wait for Tx buffer to be empty
-	rjmp TRANSMIT                                                                   ;not ready yet
-	sts UDR0, byte_tx                                                               ;transmit character
+	rjmp TRANSMIT 								;not ready yet
+	sts UDR0, byte_tx 							;transmit character
 
 	ret
 
@@ -980,7 +980,7 @@ STATE_STOP_HANDLE :
 		push cur_level
 		rcall SHIFT_B_TIMES_RIGHT
 		pop cur_level
-		pop cur_ele_calls                                                       ; A shifted cur_level times
+		pop cur_ele_calls 						; A shifted cur_level times
 
 		cpi cur_ele_calls, 0
 		brne go_state_rise_ele
