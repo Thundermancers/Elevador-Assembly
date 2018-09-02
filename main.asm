@@ -3,7 +3,7 @@
 ;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;                                               SETTING INTERRUPTIONS ADDRESSES
+;															SETTING INTERRUPTIONS ADDRESSES
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 rjmp RESET
@@ -15,12 +15,12 @@ rjmp INT1_CALLBACK                                                              
 rjmp TIMER_CALLBACK                                                             ; Call interruption of timer (1s)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;						END SETTING INTERRUPTIONS ADDRESSES
+;															END SETTING INTERRUPTIONS ADDRESSES
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;						SETTING DEFINES AND SETS
+;															SETTING DEFINES AND SETS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; DEFINES
@@ -78,12 +78,12 @@ rjmp TIMER_CALLBACK                                                             
 .equ offset_WAIT_TIME_FLAG = 42                                                 ; Position on variable log
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;						END SETTING DEFINES AND SETS
+;															END SETTING DEFINES AND SETS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;							CREATING VARIABLES
+;															CREATING VARIABLES
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 .dseg
@@ -107,7 +107,6 @@ state_rise_out: .byte 1                                                         
 state_des_out: .byte 1                                                          ; variable used to map des out state
 state_rise_ele: .byte 1                                                         ; variable used to map rise ele state
 state_des_ele: .byte 1                                                          ; variable used to map des ele state
-state_des_ele_out: .byte 1                                                      ; variable used to map des ele out state
 state_stop_ele: .byte 1                                                         ; variable used to map stop ele state 
 state_stop: .byte 1                                                             ; variable used to map stop state
 
@@ -116,16 +115,16 @@ wait_cnt: .byte 1                                                               
 wait_time_flag: .byte 1                                                         ; variable used to flag of wait
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;                                                       END CREATING VARIABLES
+;															END CREATING VARIABLES
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;                                                          CONFIGURATION
+;															CONFIGURATION
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 .cseg
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;	RESET: This label will initializing the variables and configurations necessary in order to the program work properly.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -270,7 +269,7 @@ INIT_USART :
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 INIT_LOG_STRING:
-	; Config log call elevator 7 bytes
+	; Setting bytes related to elevator calls
 	ldi temp, 'E'
 	sts logs, temp
 	ldi temp, ' '
@@ -283,7 +282,7 @@ INIT_LOG_STRING:
 	ldi temp, '\n'
 	sts logs+6, temp
 
-	; Config log call outside 8 bytes
+	; Setting bytes related to outside calls
 	ldi temp, 'O'
 	sts logs+7, temp
 	ldi temp, 'S'
@@ -298,7 +297,7 @@ INIT_LOG_STRING:
 	ldi temp, '\n'
 	sts logs+14, temp
 
-	; Config log call level 4 bytes
+	; Setting bytes related to current elevator level
 	ldi temp, 'L'
 	sts logs+15, temp
 	ldi temp, ' '
@@ -308,7 +307,7 @@ INIT_LOG_STRING:
 	ldi temp, '\n'
 	sts logs+18, temp
 
-	; Config log call output 4 bytes (led and buzzy) 
+	; Setting bytes related to led and buzzer state 
 	ldi temp, 'O'
 	sts logs+19, temp
 	ldi temp, ' '
@@ -318,7 +317,7 @@ INIT_LOG_STRING:
 	ldi temp, '\n'
 	sts logs+22, temp
 
-	; Config log call state 7 bytes
+	; Setting bytes related to current state
 	ldi temp, 'S'
 	sts logs+23, temp
 	ldi temp, ' '
@@ -331,7 +330,7 @@ INIT_LOG_STRING:
 	ldi temp, '\n'
 	sts logs+29, temp
 
-	; Config log door count 5 bytes
+	; Setting bytes related to door counter
 	ldi temp, 'D'
 	sts logs+30, temp
 	ldi temp, 'C'
@@ -343,7 +342,7 @@ INIT_LOG_STRING:
 	ldi temp, '\n'
 	sts logs+34, temp
 
-	; Config log change floor count 5 bytes
+	; Setting bytes related to change floor counter
 	ldi temp, 'F'
 	sts logs+35, temp
 	ldi temp, 'C'
@@ -355,7 +354,7 @@ INIT_LOG_STRING:
 	ldi temp, '\n'
 	sts logs+39, temp
 
-	; Config log wait time count 5 bytes
+	; Setting bytes related to wait time flag
 	ldi temp, 'W'
 	sts logs+40, temp
 	ldi temp, ' '
@@ -422,9 +421,6 @@ ldi temp, 0
 	ldi temp, 0b00000101
 	sts state_des_ele, temp
 
-	ldi temp, 0b00001101
-	sts state_des_ele_out, temp
-
 	ldi temp, 0b00001000
 	sts state_stop_ele, temp
 
@@ -468,24 +464,24 @@ TIMER_CALLBACK :
 		rjmp is_not_moving 						; if M bit is not set
 
 	is_moving :
-		lds cnt, change_floor_cnt 					; load change floor count
+		lds cnt, change_floor_cnt					; load change floor count
 		inc cnt 							; increment count
 		sts change_floor_cnt, cnt 					; store the new value of change floor count
 		rjmp end_if_timer_callback 					; jump to end if
 
 	is_not_moving :
-		lds temp, door_flag
+		lds temp, door_flag					; load door flag count		
 		cpi temp, 0
-		breq end_if_timer_callback
+		breq end_if_timer_callback					; verify if the door is closed
 		lds cnt, door_cnt 						; load door count
 		inc cnt 							; increment count
 		sts door_cnt, cnt 						; store the new value of door count
 	
 	end_if_timer_callback :
 
-	rcall SEND_LOG								; Call log
+	rcall SEND_LOG								; Call the function that send log
 
-	lds temp, wait_cnt
+	lds temp, wait_cnt					; increment wait time counter
 	inc temp
 	sts wait_cnt, temp
 
@@ -518,6 +514,7 @@ INT0_CALLBACK :
 	push update_ele
 	push pinb_bits
 	push temp_pinb
+	push cur_state
 	in temp, SREG
 	push temp
 
@@ -526,9 +523,9 @@ INT0_CALLBACK :
 	mov temp_pinb, pinb_bits 						; copy pind bins to backup
 
 	if_T_pressed_ele :
-		andi temp_pinb, (1 << BUTTON_ELE_T)
-		brbs SREG_Z, end_if_T_pressed_ele
-		lds update_ele, ele_calls
+		andi temp_pinb, (1 << BUTTON_ELE_T)					; verify if the T button was pressed
+		brbs SREG_Z, end_if_T_pressed_ele					; if not, end if
+		lds update_ele, ele_calls					; if yes, update elevator calls
 		ori update_ele, (1 << call_T)
 		sts ele_calls, update_ele
 
@@ -537,9 +534,9 @@ INT0_CALLBACK :
 	mov temp_pinb, pinb_bits
 
 	if_1_pressed_ele :
-		andi temp_pinb, (1 << BUTTON_ELE_1)
-		brbs SREG_Z, end_if_1_pressed_ele
-		lds update_ele, ele_calls
+		andi temp_pinb, (1 << BUTTON_ELE_1)					; verify if the 1 button was pressed
+		brbs SREG_Z, end_if_1_pressed_ele					; if not, end if
+		lds update_ele, ele_calls					; if yes, update elevator calls
 		ori update_ele, (1 << call_1)
 		sts ele_calls, update_ele
 
@@ -548,9 +545,9 @@ INT0_CALLBACK :
 	mov temp_pinb, pinb_bits
 
 	if_2_pressed_ele :
-		andi temp_pinb, (1 << BUTTON_ELE_2)
-		brbs SREG_Z, end_if_2_pressed_ele
-		lds update_ele, ele_calls
+		andi temp_pinb, (1 << BUTTON_ELE_2)					; verify if the 2 button was pressed
+		brbs SREG_Z, end_if_2_pressed_ele					; if not, end if
+		lds update_ele, ele_calls					; if yes, update elevator calls
 		ori update_ele, (1 << call_2)
 		sts ele_calls, update_ele
 
@@ -559,9 +556,9 @@ INT0_CALLBACK :
 	mov temp_pinb, pinb_bits
 
 	if_3_pressed_ele :
-		andi temp_pinb, (1 << BUTTON_ELE_3)
-		brbs SREG_Z, end_if_3_pressed_ele
-		lds update_ele, ele_calls
+		andi temp_pinb, (1 << BUTTON_ELE_3)					; verify if the 3 button was pressed
+		brbs SREG_Z, end_if_3_pressed_ele					; if not, end if
+		lds update_ele, ele_calls					; if yes, update elevator calls
 		ori update_ele, (1 << call_3)
 		sts ele_calls, update_ele
 
@@ -570,9 +567,9 @@ INT0_CALLBACK :
 	mov temp_pinb, pinb_bits
 
 	if_close_pressed_ele :
-		andi temp_pinb, (1 << BUTTON_ELE_CD)
-		brbs SREG_Z, end_if_close_pressed_ele
-		ldi temp, 0
+		andi temp_pinb, (1 << BUTTON_ELE_CD)					; verify if the close door button was pressed
+		brbs SREG_Z, end_if_close_pressed_ele					; if not, end if
+		ldi temp, 0					; if yes, clear the door flag
 		sts door_flag, temp
 		sts door_cnt, temp
 
@@ -581,12 +578,12 @@ INT0_CALLBACK :
 	mov temp_pinb, pinb_bits
 
 	if_open_pressed_ele :
-		andi temp_pinb, (1 << BUTTON_ELE_OD)
-		brbs SREG_Z, end_if_open_pressed_ele
-		lds cur_state, state
+		andi temp_pinb, (1 << BUTTON_ELE_OD)					; verify if the open door button was pressed
+		brbs SREG_Z, end_if_open_pressed_ele					; if not, end if
+		lds cur_state, state					; if yes, verify if the elevator is moving
 		andi cur_state, (1 << stateM)
-		brne end_if_open_pressed_ele
-		ldi temp, 1
+		brne end_if_open_pressed_ele					; if not, end if
+		ldi temp, 1					; if yes, set the door flag
 		sts door_flag, temp
 		ldi temp, 0
 		sts door_cnt, temp
@@ -596,6 +593,7 @@ INT0_CALLBACK :
 	; Restore registers and SREG
 	pop temp
 	out SREG, temp
+	pop cur_state
 	pop temp_pinb
 	pop pinb_bits
 	pop update_ele
@@ -632,9 +630,9 @@ INT1_CALLBACK :
 	mov temp_pind, pind_bits 						; copy pinb bins to backup
 
 	if_T_pressed_outside :
-		andi temp_pind, (1 << BUTTON_OUTSIDE_T) 
-		brbs SREG_Z, end_if_T_pressed_outside
-		lds update_outside, outside_calls
+		andi temp_pind, (1 << BUTTON_OUTSIDE_T)					; verify if the T button was pressed
+		brbs SREG_Z, end_if_T_pressed_outside					; if not, end if
+		lds update_outside, outside_calls					; if yes, update outside calls
 		ori update_outside, (1 << call_T)
 		sts outside_calls, update_outside
 	
@@ -643,9 +641,9 @@ INT1_CALLBACK :
 	mov temp_pind, pind_bits
 
 	if_1_pressed_outside :
-		andi temp_pind, (1 << BUTTON_OUTSIDE_1)
-		brbs SREG_Z, end_if_1_pressed_outside
-		lds update_outside, outside_calls
+		andi temp_pind, (1 << BUTTON_OUTSIDE_1)					; verify if the 1 button was pressed
+		brbs SREG_Z, end_if_1_pressed_outside					; if not, end if
+		lds update_outside, outside_calls					; if yes, update outside calls
 		ori update_outside, (1 << call_1)
 		sts outside_calls, update_outside
 	
@@ -654,9 +652,9 @@ INT1_CALLBACK :
 	mov temp_pind, pind_bits
 
 	if_2_pressed_outside :
-		andi temp_pind, (1 << BUTTON_OUTSIDE_2)
-		brbs SREG_Z, end_if_2_pressed_outside
-		lds update_outside, outside_calls
+		andi temp_pind, (1 << BUTTON_OUTSIDE_2)					; verify if the 2 button was pressed
+		brbs SREG_Z, end_if_2_pressed_outside					; if not, end if
+		lds update_outside, outside_calls					; if yes, update outside calls
 		ori update_outside, (1 << call_2)
 		sts outside_calls, update_outside
 	
@@ -665,9 +663,9 @@ INT1_CALLBACK :
 	mov temp_pind, pind_bits
 
 	if_3_pressed_outside :
-		andi temp_pind, (1 << BUTTON_OUTSIDE_3)
-		brbs SREG_Z, end_if_3_pressed_outside
-		lds update_outside, outside_calls
+		andi temp_pind, (1 << BUTTON_OUTSIDE_3)					; verify if the 3 button was pressed
+		brbs SREG_Z, end_if_3_pressed_outside					; if not, end if
+		lds update_outside, outside_calls					; if yes, update outside calls
 		ori update_outside, (1 << call_3)
 		sts outside_calls, update_outside
 	
@@ -690,7 +688,7 @@ INT1_CALLBACK :
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;	TRANSMIT: This label will handle the state_stop state.
+;	TRANSMIT: This function will transmit a specific byte via serial
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 .def empty = r17
@@ -708,7 +706,8 @@ TRANSMIT:
 .undef empty
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;	SEND_LOG: This label will handle the state_stop state.
+;	SEND_LOG: This function will update the log string with the current values of the states, elevator calls, outside calls, etc and 
+;	call TRANSMIT function to trasmint the log string via serial.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 .def output = r17
@@ -732,17 +731,17 @@ SEND_LOG:
 	push send_byte
 	push temp
 
-	; Getting 
+	; Initializing registers that wil be helpful 
 	ldi zero, '0'
 	ldi one, '1'
 	ldi output, 0
 
-	; Setting
+	; getting elevator calls, door flag and door count
 	lds calls, ele_calls
 	lds flag, door_flag
 	lds cnt, door_cnt
 
-	; Setting value default 0 on registrers
+	; Initializing elevator calls, outside calls and state to 0b0000
 	sts logs + offset_ET, zero
 	sts logs + offset_E1, zero
 	sts logs + offset_E2, zero
@@ -757,6 +756,8 @@ SEND_LOG:
 	sts logs + offset_S_T, zero
 	sts logs + offset_S_S, zero
 	sts logs + offset_S_M, zero
+
+	; Setting elevator calls if there is calls
 
 	mov temp, calls
 	andi temp, (1 << call_T)
@@ -782,7 +783,8 @@ SEND_LOG:
 		sts logs + offset_E3, one
 
 	skip_E_3 :
-	; ---------------------------------------------------
+	
+	; Setting outside calls if there is calls
 
 	lds calls, outside_calls
 	mov temp, calls
@@ -810,7 +812,8 @@ SEND_LOG:
 
 	skip_OS_3 :
 
-	; ---------------------------------------------------
+	; Setting current state
+	
 	lds cur_state, state
 
 	mov temp, cur_state
@@ -838,30 +841,31 @@ SEND_LOG:
 
 	skip_S_C :
 
-	; ---------------------------------------------------
+	; Setting current level
 
 	lds temp, level
 	add temp, zero
 	sts logs + offset_L, temp
 
-	; ---------------------------------------------------
+	; Setting current door count
 
 	lds temp, door_cnt
 	add temp, zero
 	sts logs + offset_DOOR_CNT, temp
 
-	; ---------------------------------------------------
+	; Setting wait time flag
+
 	lds temp, wait_time_flag
 	add temp, zero
 	sts logs + offset_WAIT_TIME_FLAG, temp
 
-	; ---------------------------------------------------
-
+	; Setting change floor count
 
 	lds temp, change_floor_cnt
 	add temp, zero
 	sts logs+offset_FLOOR_CNT, temp
 
+	; Setting current led and buzzer state
 
 	cpi flag, 0
 	breq write_output
@@ -876,21 +880,25 @@ SEND_LOG:
 		add output, zero
 		sts logs + offset_O, output
 
+	; Sending byte to byte via serial
+
 	ldi temp, 0
 	ldi ZH, high(logs)
 	ldi ZL, low(logs)
 
-	while_test_log :                ;#TODO: mudar
-		cpi temp, SIZE_LOG
-		brsh while_end_log
+	while_test_log :
+		cpi temp, SIZE_LOG					; checking the current byte to be sent
+		brsh while_end_log				; if the log string is over, end while
 
-	while_loop_log :
+	while_loop_log :					; if not, send the next byte
 		ld send_byte, Z+
 		rcall TRANSMIT
 		inc temp
 		rjmp while_test_log
 	while_end_log :
 
+
+	; Restore registers
 	pop temp
 	pop send_byte
 	pop cur_state
@@ -925,16 +933,16 @@ SEND_LOG:
 
 STATE_STOP_HANDLE :
 
-	lds temp, wait_time_flag
+	lds temp, wait_time_flag					; checking if the wait time flag is set
 	cpi temp, 1
 	brne go_not_to_wait_time_stop
 
-	go_to_wait_time_stop :
+	go_to_wait_time_stop :					; if yes, go to WAIT_TIME function before to start STATE_STOP_HANDLE
 		ldi temp, 0
 		sts wait_cnt, temp
 		rcall WAIT_TIME
 
-	go_not_to_wait_time_stop :
+	go_not_to_wait_time_stop :					; if not, start STATE_STOP_HANDLE
 		lds cnt, door_cnt
 		lds flag, door_flag
 		lds cur_level, level
@@ -949,17 +957,17 @@ STATE_STOP_HANDLE :
 		pop A
 		com A
 
-		and cur_ele_calls, A
-		and cur_outside_calls, A
+		and cur_ele_calls, A					; Clear the current level call in elevator calls
+		and cur_outside_calls, A					; clear the current level call in outside calls
 		sts ele_calls, cur_ele_calls
 		sts outside_calls, cur_outside_calls
 
-		cpi flag, 0             
-		breq check_calls_elevator
-
-		cpi cnt, 10
-		brne check_calls_elevator
-		ldi temp, 0
+		cpi flag, 0					; checking if the door is close
+		breq check_calls_elevator					; if yes, check the elevator calls
+			
+		cpi	cnt, 10					; if not, check if the door_cnt is same or greater than 10
+		brne check_calls_elevator					; if not, check elevator calls
+		ldi temp, 0					; if yes, close the door
 		sts door_flag, temp
 		sts door_cnt, temp
 
@@ -973,7 +981,7 @@ STATE_STOP_HANDLE :
 		push cur_level
 		rcall SHIFT_B_TIMES_RIGHT
 		pop cur_level
-		pop cur_ele_calls 						; A shifted cur_level times
+		pop cur_ele_calls
 
 		cpi cur_ele_calls, 0
 		brne go_state_rise_ele
@@ -1325,7 +1333,7 @@ STATE_DES_ELE_HANDLE :
 
 		and A, calls                                                    ; checking if there is a call in the current floor
 		breq end_if_des_ele                                             ; if not, skip
-		ldi temp, 1
+		ldi temp, 1					; if yes, set wait time to 1 and door count to 0
 		sts wait_time_flag, temp
 		ldi temp, 0
 		sts door_cnt, temp
@@ -1343,17 +1351,17 @@ STATE_DES_ELE_HANDLE :
 
 		sub calls, A            
 		dec A
-		and calls, A
-		breq go_state_stop_2
-
-		lds old_state_update, state
+		and calls, A					; verify if there is other calls
+		breq go_state_stop_2					; if not, go to state stop
+		; if yes, go to state stop ele
+		lds old_state_update, state					; save the current state
 		sts old_state, old_state_update
-		lds new_state, state_stop_ele
+		lds new_state, state_stop_ele			; save the new state
 		sts state, new_state
 		rjmp end_if_rise_ele
 
 	go_state_stop_2 :
-		lds new_state, state_stop
+		lds new_state, state_stop					; save the new state
 		sts state, new_state
 
 	end_if_des_ele :
@@ -1377,6 +1385,7 @@ STATE_DES_ELE_HANDLE :
 .def B = r23
 
 SHIFT_B_TIMES_LEFT :
+	; Saving registers that will be used
 	push A
 	push B
 	push YH
@@ -1390,17 +1399,18 @@ SHIFT_B_TIMES_LEFT :
 	ldi temp, 0
 
 	while_test_SBTL :
-		cpi B, 0
-		breq while_end_SBTL
+		cpi B, 0					; checking if B is 0
+		breq while_end_SBTL					; if yes, go to end while
 	
-	while_loop_SBTL :
-		lsl A
-		dec B
+	while_loop_SBTL :					; if not, shift A one more time
+		lsl A					; shift A to left
+		dec B					; decrement B
 		rjmp while_test_SBTL
 	
 	while_end_SBTL :
-		std Y + offset + 1, A
+		std Y + offset + 1, A					; save the new A value
 
+	; Restore used registers
 	pop YL
 	pop YH
 	pop B
@@ -1420,6 +1430,7 @@ SHIFT_B_TIMES_LEFT :
 .def B = r23
 
 SHIFT_B_TIMES_RIGHT :
+	; Saving the registers that will be used
 	push A
 	push B
 	push YH
@@ -1433,17 +1444,18 @@ SHIFT_B_TIMES_RIGHT :
 	ldi temp, 0
 
 	while_test_SBTR :
-		cpi B, 0
-		breq while_end_SBTR
+		cpi B, 0					; check if the B is 0
+		breq while_end_SBTR					; if yes, go to end while
 		
-	while_loop_SBTR :
-		lsr A
-		dec B
+	while_loop_SBTR :					; if not, shift A one more time
+		lsr A					; shift A to right
+		dec B					; decrement B
 		rjmp while_test_SBTR
 		
 	while_end_SBTR :
-		std Y + offset + 1, A
+		std Y + offset + 1, A					; save the new A value
 
+	; Restore used registers
 	pop YL
 	pop YH
 	pop B
@@ -1470,19 +1482,19 @@ OUTPUTS:
 	lds cnt, door_cnt
 	ldi output, 0
 
-	cpi flag, 0
-	breq print
-	ldi temp, ( 1 << (LED_POSITION + 4) )
+	cpi flag, 0					; check if the door is close
+	breq print					; if yes, go to print
+	ldi temp, ( 1 << (LED_POSITION + 4) )					; if not, turn on led
 	or output, temp
-	cpi cnt, 5
-	brlo print
-	ldi temp, ( 1 << (BUZZER_POSITION + 4) )
+	cpi cnt, 5					; check if door count is same or greater than 5
+	brlo print					; if not, go to print
+	ldi temp, ( 1 << (BUZZER_POSITION + 4) )					; if yes, turn on buzzer
 	or output, temp
 
 	print :
 		or output, cur_level
 		
-	out PORTC, output 
+	out PORTC, output					; write the current led and buzzer state
 	
 	ret
 
@@ -1571,14 +1583,6 @@ MAIN:
 		rjmp end_if_main
 
 	is_not_in_state_des_ele :
-		; checking state_des_ele_out
-		lds temp, state_des_ele_out
-		cp cur_state, temp                                              ; comparing current state with state_des_ele_out
-		brbc SREG_Z, is_not_in_state_des_ele_out                        ; branch if isnt in this state
-		rcall STATE_DES_ELE_OUT_HANDLE                                  ; else, execute this state handle
-		rjmp end_if_main
-
-	is_not_in_state_des_ele_out :
 		; checking state_stop_ele
 		lds temp, state_stop_ele
 		cp cur_state, temp                                              ; comparing current state with state_stop_ele
