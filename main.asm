@@ -25,10 +25,10 @@ rjmp TIMER_CALLBACK                                                             
 
 ; DEFINES
 .def temp = r16                                                                 ; Temporary variable
-.def CLOCK 16.0e6                                                               ; Clock speed
-.def TIMER 1                                                                    ; Timer to interruption
-.def BAUDRATE 115200                                                            ; Define qt of bits to seconds to baud rate
-.def SIZE_LOG 45								; Define size log
+#define CLOCK 16.0e6                                                               ; Clock speed
+#define TIMER 1                                                                    ; Timer to interruption
+.equ BAUDRATE = 115200                                                            ; Define qt of bits to seconds to baud rate
+.equ SIZE_LOG = 41								; Define size log
 
 ; INPUTS
 .equ BUTTON_ELE_CD = 4                                                          ; bit position on PINB to elevator close door
@@ -75,7 +75,6 @@ rjmp TIMER_CALLBACK                                                             
 .equ offset_S_M = 28                                                            ; Position on variable log
 .equ offset_DOOR_CNT = 33                                                       ; Position on variable log
 .equ offset_FLOOR_CNT = 38                                                      ; Position on variable log
-.equ offset_WAIT_TIME_FLAG = 42                                                 ; Position on variable log
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;															END SETTING DEFINES AND SETS
@@ -102,17 +101,14 @@ led_buzzer_out: .byte 1                                                         
 
 ; Defining variables related to FSM
 state: .byte 1                                                                  ; variable used to store the actual state
-old_state: .byte 1                                                              ; variable used to store the last state
-state_rise_out: .byte 1                                                         ; variable used to map rise out state
-state_des_out: .byte 1                                                          ; variable used to map des out state
-state_rise_ele: .byte 1                                                         ; variable used to map rise ele state
-state_des_ele: .byte 1                                                          ; variable used to map des ele state
-state_stop_ele: .byte 1                                                         ; variable used to map stop ele state 
-state_stop: .byte 1                                                             ; variable used to map stop state
-
-; Defining help variables
-wait_cnt: .byte 1                                                               ; variable used to counter of wait
-wait_time_flag: .byte 1                                                         ; variable used to flag of wait
+next_state: .byte 1                                                              ; variable used to store the last state
+; |XXXXCTSM|
+.equ STATE_RISE_OUT = 0b00000011                                                         ; variable used to map rise out state
+.equ STATE_DES_OUT = 0b00000001                                                          ; variable used to map des out state
+.equ STATE_RISE_ELE = 0b00000111                                                         ; variable used to map rise ele state
+.equ STATE_DES_ELE = 0b00000101                                                          ; variable used to map des ele state
+.equ STATE_STOP_ELE = 0b00001000                                                         ; variable used to map stop ele state 
+.equ STATE_STOP = 0b00000000                                                             ; variable used to map stop state
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;															END CREATING VARIABLES
@@ -279,7 +275,7 @@ INIT_LOG_STRING:
 	sts logs+3, temp
 	sts logs+4, temp
 	sts logs+5, temp
-	ldi temp, '\n'
+	ldi temp, '_'
 	sts logs+6, temp
 
 	; Setting bytes related to outside calls
@@ -294,7 +290,7 @@ INIT_LOG_STRING:
 	sts logs+11, temp
 	sts logs+12, temp
 	sts logs+13, temp
-	ldi temp, '\n'
+	ldi temp, '_'
 	sts logs+14, temp
 
 	; Setting bytes related to current elevator level
@@ -304,7 +300,7 @@ INIT_LOG_STRING:
 	sts logs+16, temp
 	ldi temp, 'X'
 	sts logs+17, temp
-	ldi temp, '\n'
+	ldi temp, '_'
 	sts logs+18, temp
 
 	; Setting bytes related to led and buzzer state 
@@ -314,7 +310,7 @@ INIT_LOG_STRING:
 	sts logs+20, temp
 	ldi temp, 'X'
 	sts logs+21, temp
-	ldi temp, '\n'
+	ldi temp, '_'
 	sts logs+22, temp
 
 	; Setting bytes related to current state
@@ -327,7 +323,7 @@ INIT_LOG_STRING:
 	sts logs+26, temp
 	sts logs+27, temp
 	sts logs+28, temp
-	ldi temp, '\n'
+	ldi temp, '_'
 	sts logs+29, temp
 
 	; Setting bytes related to door counter
@@ -339,7 +335,7 @@ INIT_LOG_STRING:
 	sts logs+32, temp
 	ldi temp, 'X'
 	sts logs+33, temp
-	ldi temp, '\n'
+	ldi temp, '_'
 	sts logs+34, temp
 
 	; Setting bytes related to change floor counter
@@ -351,19 +347,10 @@ INIT_LOG_STRING:
 	sts logs+37, temp
 	ldi temp, 'X'
 	sts logs+38, temp
-	ldi temp, '\n'
+	ldi temp, '_'
 	sts logs+39, temp
-
-	; Setting bytes related to wait time flag
-	ldi temp, 'W'
-	sts logs+40, temp
-	ldi temp, ' '
-	sts logs+41, temp
-	ldi temp, 'X'
-	sts logs+42, temp
 	ldi temp, '\n'
-	sts logs+43, temp
-	sts logs+44, temp
+	sts logs+40, temp
 
 	ret
 
@@ -372,13 +359,16 @@ INIT_LOG_STRING:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 INIT_VARIABLES :
-ldi temp, 0
 
-	; Setting state as 0b0000
+	; Setting state to STATE_STOP_ELE
+	ldi temp, STATE_STOP_ELE
 	sts state, temp
 
-	; Setting wait_time_cnt to 0
-	sts wait_cnt, temp
+	; Setting next state to STATE_STOP
+	ldi temp, STATE_STOP
+	sts next_state, temp
+
+	ldi temp, 0
 
 	; Setting change floor count to 0
 	sts change_floor_cnt, temp
@@ -401,28 +391,6 @@ ldi temp, 0
 	; Setting door flag to 1
 	ldi temp, 1
 	sts door_flag, temp
-
-	; Setting wait_time_flag to 1
-	sts wait_time_flag, temp
-
-	; Initializing states mapping
-	ldi temp, 0b00000000
-	sts state_stop, temp
-
-	ldi temp, 0b00000011
-	sts state_rise_out, temp
-
-	ldi temp, 0b00000001
-	sts state_des_out, temp
-
-	ldi temp, 0b00000111
-	sts state_rise_ele, temp
-
-	ldi temp, 0b00000101
-	sts state_des_ele, temp
-
-	ldi temp, 0b00001000
-	sts state_stop_ele, temp
 
 	ret
 
@@ -448,11 +416,6 @@ TIMER_CALLBACK :
 	push cur_state
 	in temp, SREG
 	push temp
-
-	; Verify if wait time is active
-	lds temp, wait_time_flag
-	cpi temp, 1
-	breq end_if_timer_callback						; jump to end if
 
 	; Function implementation
 	lds cur_state, state 							; get current state
@@ -481,10 +444,6 @@ TIMER_CALLBACK :
 
 	rcall SEND_LOG								; Call the function that send log
 
-	lds temp, wait_cnt					; increment wait time counter
-	inc temp
-	sts wait_cnt, temp
-
 	; Restore registers and SREG
 	pop temp
 	out SREG, temp
@@ -506,6 +465,7 @@ TIMER_CALLBACK :
 .def pinb_bits = r11
 .def temp_pinb = r20
 .def cur_state = r22
+.def new_state = r23
 
 INT0_CALLBACK :
 
@@ -515,6 +475,7 @@ INT0_CALLBACK :
 	push pinb_bits
 	push temp_pinb
 	push cur_state
+	push new_state
 	in temp, SREG
 	push temp
 
@@ -572,6 +533,8 @@ INT0_CALLBACK :
 		ldi temp, 0					; if yes, clear the door flag
 		sts door_flag, temp
 		sts door_cnt, temp
+		lds new_state, next_state
+		sts state, new_state
 
 	end_if_close_pressed_ele :
 
@@ -593,6 +556,7 @@ INT0_CALLBACK :
 	; Restore registers and SREG
 	pop temp
 	out SREG, temp
+	pop new_state
 	pop cur_state
 	pop temp_pinb
 	pop pinb_bits
@@ -602,6 +566,7 @@ INT0_CALLBACK :
 	; Return to the normal routine
 	reti
 
+.undef new_state
 .undef cur_state
 .undef pinb_bits
 .undef temp_pinb
@@ -853,12 +818,6 @@ SEND_LOG:
 	add temp, zero
 	sts logs + offset_DOOR_CNT, temp
 
-	; Setting wait time flag
-
-	lds temp, wait_time_flag
-	add temp, zero
-	sts logs + offset_WAIT_TIME_FLAG, temp
-
 	; Setting change floor count
 
 	lds temp, change_floor_cnt
@@ -933,44 +892,32 @@ SEND_LOG:
 
 STATE_STOP_HANDLE :
 
-	lds temp, wait_time_flag					; checking if the wait time flag is set
-	cpi temp, 1
-	brne go_not_to_wait_time_stop
+	lds cnt, door_cnt
+	lds flag, door_flag
+	lds cur_level, level
+	lds cur_ele_calls, ele_calls
+	lds cur_outside_calls, outside_calls
+	ldi A, 1
 
-	go_to_wait_time_stop :					; if yes, go to WAIT_TIME function before to start STATE_STOP_HANDLE
-		ldi temp, 0
-		sts wait_cnt, temp
-		rcall WAIT_TIME
+	push A
+	push cur_level
+	rcall SHIFT_B_TIMES_LEFT
+	pop cur_level
+	pop A
+	com A
 
-	go_not_to_wait_time_stop :					; if not, start STATE_STOP_HANDLE
-		lds cnt, door_cnt
-		lds flag, door_flag
-		lds cur_level, level
-		lds cur_ele_calls, ele_calls
-		lds cur_outside_calls, outside_calls
-		ldi A, 1
+	and cur_ele_calls, A					; Clear the current level call in elevator calls
+	and cur_outside_calls, A					; clear the current level call in outside calls
+	sts ele_calls, cur_ele_calls
+	sts outside_calls, cur_outside_calls
 
-		push A
-		push cur_level
-		rcall SHIFT_B_TIMES_LEFT
-		pop cur_level
-		pop A
-		com A
+	cpi flag, 0
+	breq check_calls_elevator
 
-		and cur_ele_calls, A					; Clear the current level call in elevator calls
-		and cur_outside_calls, A					; clear the current level call in outside calls
-		sts ele_calls, cur_ele_calls
-		sts outside_calls, cur_outside_calls
-
-		cpi flag, 0					; checking if the door is close
-		breq check_calls_elevator					; if yes, check the elevator calls
-			
-		cpi	cnt, 10					; if not, check if the door_cnt is same or greater than 10
-		brne check_calls_elevator					; if not, check elevator calls
-		ldi temp, 0					; if yes, close the door
-		sts door_flag, temp
-		sts door_cnt, temp
-
+	cpi cnt, 10
+	brlo end_state_stop_handle
+	ldi temp, 0
+	sts door_flag, temp
 
 	check_calls_elevator :
 		lds cur_ele_calls, ele_calls
@@ -986,15 +933,13 @@ STATE_STOP_HANDLE :
 		cpi cur_ele_calls, 0
 		brne go_state_rise_ele
 
-		lds temp, state_des_ele
+		ldi temp, STATE_DES_ELE
 		sts state, temp
 		rjmp end_state_stop_handle
 
 	go_state_rise_ele:
-		lds temp, state_rise_ele
+		ldi temp, STATE_RISE_ELE
 		sts state, temp
-		ldi temp, 0
-		sts door_flag, temp
 		rjmp end_state_stop_handle
 
 	check_calls_outside:
@@ -1011,17 +956,13 @@ STATE_STOP_HANDLE :
 		cpi cur_outside_calls, 0
 		brne go_state_rise_out
 
-		lds temp, state_des_out
+		ldi temp, STATE_DES_OUT
 		sts state, temp
-		ldi temp, 0
-		sts door_flag, temp
 		rjmp end_state_stop_handle
 
 	go_state_rise_out :
-		lds temp, state_rise_out
+		ldi temp, STATE_RISE_OUT
 		sts state, temp
-		ldi temp, 0
-		sts door_flag, temp
 
 	end_state_stop_handle:
 
@@ -1047,45 +988,49 @@ STATE_STOP_HANDLE :
 
 STATE_STOP_ELE_HANDLE :
 
-	lds temp, wait_time_flag
+	init_state :
+
+	lds temp, door_flag
 	cpi temp, 1
-	brne go_not_to_wait_time_stop_ele
+	breq begin_state_stop_ele
+	
+	ldi temp, 0
+	sts door_cnt, temp
+	ldi temp, 1
+	sts door_flag, temp
 
-	go_to_wait_time_stop_ele :
-		ldi temp, 0
-		sts wait_cnt, temp
-		rcall WAIT_TIME
+	lds cur_level, level
+	lds cur_ele_calls, ele_calls
+	lds cur_outside_calls, outside_calls
+	ldi A, 1
 
-	go_not_to_wait_time_stop_ele :
-		lds cnt, door_cnt
-		lds flag, door_flag
-		lds cur_level, level
-		lds cur_ele_calls, ele_calls
-		lds cur_outside_calls, outside_calls
-		ldi A, 1
+	push A
+	push cur_level
+	rcall SHIFT_B_TIMES_LEFT
+	pop cur_level
+	pop A
+	com A
 
-		push A
-		push cur_level
-		rcall SHIFT_B_TIMES_LEFT
-		pop cur_level
-		pop A
-		com A
+	and cur_ele_calls, A
+	and cur_outside_calls, A
+	sts ele_calls, cur_ele_calls
+	sts outside_calls, cur_outside_calls
 
-		and cur_ele_calls, A
-		and cur_outside_calls, A
-		sts ele_calls, cur_ele_calls
-		sts outside_calls, cur_outside_calls
+	begin_state_stop_ele :
 
-		cpi flag, 0             
-		breq go_to_old_state
+	lds cnt, door_cnt
+	lds flag, door_flag
 
-		cpi cnt, 10
-		brne end_state_stop_ele
-		ldi temp, 0
-		sts door_flag, temp
+	cpi flag, 0             
+	breq go_to_next_state
 
-	go_to_old_state : 
-		lds new_state, old_state
+	cpi cnt, 10
+	brne end_state_stop_ele
+	ldi temp, 0
+	sts door_flag, temp
+
+	go_to_next_state : 
+		lds new_state, next_state
 		sts state, new_state
 
 	end_state_stop_ele :
@@ -1121,8 +1066,9 @@ STATE_RISE_OUT_HANDLE :
 	pop cur_level
 	pop calls
 
-	brlo init_state_rise_out
-	lds new_state, state_rise_ele
+	cpi calls, 0
+	breq init_state_rise_out
+	ldi new_state, STATE_RISE_ELE
 	sts state, new_state
 	rjmp end_state_rise_out
 
@@ -1156,11 +1102,9 @@ STATE_RISE_OUT_HANDLE :
 	;  ------------
 	;   if answer is positive is because the LSM is 1. Therefore, exist new calls in biggest floors.
 
-		ldi temp, 1
-		sts wait_time_flag, temp
-		ldi temp, 0
-		sts door_cnt, temp
-		lds new_state, state_stop
+		ldi new_state, STATE_STOP
+		sts next_state, new_state
+		ldi new_state, STATE_STOP_ELE
 		sts state, new_state
 
 	end_state_rise_out :
@@ -1206,14 +1150,11 @@ STATE_DES_OUT_HANDLE :
 
 		and A, calls                                                    ; checking if there is a call in the current floor
 		breq end_if_des_out                                             ; if not, skip
-		ldi temp, 1
-		sts wait_time_flag, temp
-		ldi temp, 0
-		sts door_cnt, temp
 
-		lds new_state, state_stop
+		ldi new_state, STATE_STOP
+		sts next_state, new_state
+		ldi new_state, STATE_STOP_ELE
 		sts state, new_state
-
 	end_if_des_out :
 
 	ret
@@ -1228,7 +1169,6 @@ STATE_DES_OUT_HANDLE :
 ;	STATE_RISE_ELE_HANDLE: This label will handle the state_rise_ele state.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-.def old_state_update = r19
 .def cur_level = r20
 .def cnt = r21
 .def A = r22
@@ -1258,10 +1198,6 @@ STATE_RISE_ELE_HANDLE :
 
 		and A, calls                                                    ; checking if there is a call in the current floor
 		breq end_if_rise_ele                                            ; if not, skip
-		ldi temp, 1
-		sts wait_time_flag, temp
-		ldi temp, 0
-		sts door_cnt, temp
 
 	; Example
 	;        x1xx (calls)
@@ -1276,21 +1212,22 @@ STATE_RISE_ELE_HANDLE :
 		cp calls, A
 		brlo go_state_stop
 
-		lds old_state_update, state
-		sts old_state, old_state_update
-		lds new_state, state_stop_ele
-		sts state, new_state
-		rjmp end_if_rise_ele
+		lds new_state, state
+
+		rjmp update_state
 
 	go_state_stop :
-		lds new_state, state_stop
+		ldi new_state, STATE_STOP
+		
+	update_state :
+		sts next_state, new_state
+		ldi new_state, STATE_STOP_ELE
 		sts state, new_state
 
 	end_if_rise_ele :
-
+		
 	ret
 
-.undef old_state_update
 .undef cur_level
 .undef cnt
 .undef A
@@ -1301,7 +1238,6 @@ STATE_RISE_ELE_HANDLE :
 ;	STATE_DES_ELE_HANDLE: This label will handle the state_des_ele state.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-.def old_state_update = r19
 .def cur_level = r20
 .def cnt = r21
 .def A = r22
@@ -1333,10 +1269,6 @@ STATE_DES_ELE_HANDLE :
 
 		and A, calls                                                    ; checking if there is a call in the current floor
 		breq end_if_des_ele                                             ; if not, skip
-		ldi temp, 1					; if yes, set wait time to 1 and door count to 0
-		sts wait_time_flag, temp
-		ldi temp, 0
-		sts door_cnt, temp
 
 	; Example
 	;        x1xx (calls)
@@ -1354,21 +1286,23 @@ STATE_DES_ELE_HANDLE :
 		and calls, A					; verify if there is other calls
 		breq go_state_stop_2					; if not, go to state stop
 		; if yes, go to state stop ele
-		lds old_state_update, state					; save the current state
-		sts old_state, old_state_update
-		lds new_state, state_stop_ele			; save the new state
-		sts state, new_state
-		rjmp end_if_rise_ele
+		lds new_state, state					; save the current state
+	
+		rjmp update_state_2
 
 	go_state_stop_2 :
-		lds new_state, state_stop					; save the new state
+		ldi new_state, STATE_STOP
+		
+	update_state_2 :
+		sts next_state, new_state
+		ldi new_state, STATE_STOP_ELE					; save the new state
 		sts state, new_state
+
 
 	end_if_des_ele :
 
 	ret
 
-.undef old_state_update
 .undef cur_level
 .undef cnt
 .undef A
@@ -1505,34 +1439,6 @@ OUTPUTS:
 .undef output
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;	WAIT_TIME: DELAY of 3 seconds.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-.def cur_time = r20
-
-WAIT_TIME :
-
-	push cur_time
-
-	begin :
-		lds cur_time, wait_cnt
-		cpi cur_time, 3
-		breq end
-		rjmp begin
-
-	end :
-		ldi temp, 0
-		sts wait_time_flag, temp
-		ldi temp, 1
-		sts door_flag, temp
-	
-	pop cur_time
-
-	ret
-
-.undef cur_time
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;	MAIN: This label will have the main loop of the program.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1541,10 +1447,10 @@ WAIT_TIME :
 MAIN:
 	; getting current state
 	lds cur_state, state
-
+	
 	begin_if_main :
-	; checking state_stop
-		lds temp, state_stop
+		; checking state_stop
+		ldi temp, STATE_STOP
 		cp cur_state, temp                                              ; comparing current state with state_top
 		brbc SREG_Z, is_not_in_state_stop                               ; branch if isnt in this state
 		rcall STATE_STOP_HANDLE                                         ; else, execute this state handle
@@ -1552,7 +1458,7 @@ MAIN:
 
 	is_not_in_state_stop :
 		; checking state_rise_out
-		lds temp, state_rise_out
+		ldi temp, STATE_RISE_OUT
 		cp cur_state, temp                                              ; comparing current state with state_rise_out
 		brbc SREG_Z, is_not_in_state_rise_out                           ; branch if isnt in this state
 		rcall STATE_RISE_OUT_HANDLE                                     ; else, execute this state handle
@@ -1560,7 +1466,7 @@ MAIN:
 	
 	is_not_in_state_rise_out :
 		; checking state_des_out
-		lds temp, state_des_out
+		ldi temp, STATE_DES_OUT
 		cp cur_state, temp                                              ; comparing current state with state_des_out
 		brbc SREG_Z, is_not_in_state_des_out                            ; branch if isnt in this state
 		rcall STATE_DES_OUT_HANDLE                                      ; else, execute this state handle
@@ -1568,7 +1474,7 @@ MAIN:
 
 	is_not_in_state_des_out :
 		; checking state_rise_ele
-		lds temp, state_rise_ele
+		ldi temp, STATE_RISE_ELE
 		cp cur_state, temp                                              ; comparing current state with state_rise_ele
 		brbc SREG_Z, is_not_in_state_rise_ele                           ; branch if isnt in this state
 		rcall STATE_RISE_ELE_HANDLE                                     ; else, execute this state handle
@@ -1576,7 +1482,7 @@ MAIN:
 
 	is_not_in_state_rise_ele :
 		; checking state_des_ele
-		lds temp, state_des_ele
+		ldi temp, STATE_DES_ELE
 		cp cur_state, temp                                              ; comparing current state with state_des_ele
 		brbc SREG_Z, is_not_in_state_des_ele                            ; branch if isnt in this state
 		rcall STATE_DES_ELE_HANDLE                                      ; else, execute this state handle
@@ -1584,7 +1490,7 @@ MAIN:
 
 	is_not_in_state_des_ele :
 		; checking state_stop_ele
-		lds temp, state_stop_ele
+		ldi temp, STATE_STOP_ELE
 		cp cur_state, temp                                              ; comparing current state with state_stop_ele
 		brbc SREG_Z, is_not_in_state_stop_ele                           ; branch if isnt in this state
 		rcall STATE_STOP_ELE_HANDLE                                     ; else, execute this state handle
