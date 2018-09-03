@@ -1,4 +1,5 @@
 import serial, time
+import numpy as np
 
 SERIAL_PORT = '/dev/ttyACM0'
 SERIAL_RATE = 115200
@@ -37,6 +38,13 @@ def main():
 					print(s[0] , s[1] )
 		else:
 
+			# 1000 - STOP_ELE
+			# 0000 - STOP
+			# 0101 - DES_ELE
+			# 0111 - RISE_ELE
+			# 0001 - DES_OUT
+			# 0011 - RISE_OUT
+
 			'''
 				E 0000
 				OS 0000
@@ -48,27 +56,25 @@ def main():
 			'''			
 
 			if int(out[4][1],2)&1 :
-				print( 'Parado')
+				print( 'Parado', end='')
+
 			else :
 				if int(out[4][1],2)&2 :
-					print('Subindo')
+					print('Subindo para ', end='')
+					print( int(np.log2(int(out[4][1],2))), end='' )
 				else:
-					print('Descendo')
-				
-				print(' para ')
-				# Calcular o andar
+					print('Descendo para ', end='')
+					v = int(out[4][1],2)
+					l = int(out[2][1])
+					bitmask = (1<<l) - 1
+					v = v&bitmask
+					print( int(np.log2(v)), end='' )				
+
 				print(' pela chamada do ')
 				if int(out[0][1],2):
 					print('elevador')
 				else
 					print('andar')
-
-			# 1000 - STOP_ELE
-			# 0000 - STOP
-			# 0101 - DES_ELE
-			# 0111 - RISE_ELE
-			# 0001 - DES_OUT
-			# 0011 - RISE_OUT
 			
 			pass
 		
