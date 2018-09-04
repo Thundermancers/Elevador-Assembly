@@ -120,8 +120,8 @@ class Log :
                     else :
                         print(s[0] , s[1] )
             else:
-                self.logStates(out)
                 self.logCalls(out)
+                self.logStates(out)
 
 
 
