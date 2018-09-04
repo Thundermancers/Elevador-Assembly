@@ -12,12 +12,80 @@ class Log :
         self.mapping[2] = '2° andar'
         self.mapping[3] = '3° andar'
         self.init_serial(SERIAL_PORT, SERIAL_RATE)
+        self.last_states = ''
+        self.last_ele_calls = 0
+        self.last_outside_calls = 0
 
     def getCurrentDateTime(self) :
         self.now = datetime.datetime.now()
 
     def init_serial(self, SERIAL_PORT, SERIAL_RATE) :
         self.ser = serial.Serial(SERIAL_PORT, SERIAL_RATE)
+
+    def logCalls(self, out) :
+        ele_calls = int(out[0][1], 2)
+        outside_calls = int(out[1][1], 2)
+        if ele_calls > self.last_ele_calls :
+            for i in range(0,4) :
+                bitmask = (1 << i)
+                if ele_calls & bitmask and not self.last_ele_calls & bitmask :
+                    print(self.now.strftime('%Y-%m-%d %H:%M:%S'), '- ', end='')
+                    print('Ocorreu uma chamada de elevador no', self.mapping[i])
+
+        if outside_calls > self.last_outside_calls :
+            for i in range(0,4) :
+                bitmask = (1 << i)
+                if outside_calls & bitmask and not self.last_outside_calls & bitmask :
+                    print(self.now.strftime('%Y-%m-%d %H:%M:%S'), '- ', end='')
+                    print('Ocorreu uma chamada de andar no', self.mapping[i])
+        self.last_ele_calls = ele_calls
+        self.last_outside_calls = outside_calls
+
+    # 1000 - STOP_ELE
+    # 0000 - STOP
+    # 0101 - DES_ELE
+    # 0111 - RISE_ELE
+    # 0001 - DES_OUT
+    # 0011 - RISE_OUT
+
+    '''
+        E 0000
+        OS 0000
+        L 0
+        O 0
+        S 0000
+        DC :
+        FC 0
+    '''			
+    
+    def logStates(self, out) :
+        states = out[2][1] + out[3][1] + out[4][1]
+        if (states != self.last_states) :
+            print(self.now.strftime('%Y-%m-%d %H:%M:%S'), '- ', end='')
+            self.last_states = states
+            if not int(out[4][1],2)&1 :
+                print('Parado no' , self.mapping[int(out[2][1])], end='; ')
+
+            else :
+                if int(out[4][1],2)&2 :
+                    print('Subindo para o ', end='')
+                    print( self.mapping[int(out[2][1]) + 1], end ='')
+                else:
+                    print('Descendo para o ', end='')
+                    print( self.mapping[int(out[2][1]) - 1], end='')				
+
+                print(' pela chamada do ', end='')
+                if int(out[4][1],2)&4:
+                    print('elevador', end ='; ')
+                else :
+                    print('andar', end='; ')
+
+            if int(out[3][1]) == 2 :
+                print('Porta aberta')
+            elif int(out[3][1]) == 3  :
+                print('Porta aberta e buzzer ligado')
+            else :
+                print('Porta fechada')
 
     def run(self) :
         mode = 1
@@ -52,48 +120,9 @@ class Log :
                     else :
                         print(s[0] , s[1] )
             else:
+                self.logStates(out)
+                self.logCalls(out)
 
-                # 1000 - STOP_ELE
-                # 0000 - STOP
-                # 0101 - DES_ELE
-                # 0111 - RISE_ELE
-                # 0001 - DES_OUT
-                # 0011 - RISE_OUT
-
-                '''
-                    E 0000
-                    OS 0000
-                    L 0
-                    O 0
-                    S 0000
-                    DC :
-                    FC 0
-                '''			
-
-                print(self.now.strftime('%Y-%m-%d %H:%M:%S'), '- ', end='')
-                if not int(out[4][1],2)&1 :
-                    print('Parado no' , self.mapping[int(out[2][1])], end='; ')
-
-                else :
-                    if int(out[4][1],2)&2 :
-                        print('Subindo para o ', end='')
-                        print( self.mapping[int(out[2][1]) + 1], end ='')
-                    else:
-                        print('Descendo para o ', end='')
-                        print( self.mapping[int(out[2][1]) - 1], end='')				
-
-                    print(' pela chamada do ', end='')
-                    if int(out[4][1],2)&4:
-                        print('elevador', end ='; ')
-                    else :
-                        print('andar', end='; ')
-
-                if int(out[3][1]) == 2 :
-                    print('Porta aberta')
-                elif int(out[3][1]) == 3  :
-                    print('Porta aberta e buzzer ligado')
-                else :
-                    print('Porta fechada')
 
 
 if __name__ == "__main__":
