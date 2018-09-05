@@ -1109,14 +1109,12 @@ STATE_RISE_OUT_HANDLE :
 		cpi calls, 1
 		brne end_state_rise_out                                         ; if not, skip
 
-	; Example
-	;        x1xx (calls)
-	;       -0100 (A)
+	; Example: level 2
+	;        x1xx (calls) >> level
 	;  ------------
-	;        x0xx
-	;   -0100
+	;        00x1
 	;  ------------
-	;   if answer is positive is because the LSM is 1. Therefore, exist new calls in biggest floors.
+	;   if answer is 1, because not have more calls above.
 
 		ldi new_state, STATE_STOP					; charges the state of definitive stop to be the future state
 		sts next_state, new_state
@@ -1220,7 +1218,7 @@ STATE_RISE_ELE_HANDLE :
 	;       -0100 (A)
 	;  ------------
 	;        x0xx
-	;   -0100
+	;   	-0100
 	;  ------------
 	;   if answer is positive is because the LSM is 1. Therefore, exist new calls in biggest floors.
 
@@ -1286,16 +1284,17 @@ STATE_DES_ELE_HANDLE :
 		and A, calls														; checking if there is a call in the current floor
 		breq end_if_des_ele													; if not, skip
 
-	; Example
+	; 	Example: level is 2
 	;        x1xx (calls)
 	;       -0100 (A)
 	;  ------------
 	;        x0xx
-	;   &0011
+	;   	&0011
 	;  ------------
-	;    00xx
+	;    	 00xx
 	; How A is pow2 -> 0...010...0
 	; A-1 is -> 0...001...1
+	; If (calls & A) is 0 not hava more call
 
 		sub calls, A            
 		dec A
