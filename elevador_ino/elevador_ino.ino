@@ -31,15 +31,23 @@
 
 Manager manager = Manager();
 
-void callback() {
-  Serial.println("aaa");
+void insideISR() {
+  manager.insideISR();
+}
+
+void outsideISR() {
+  manager.outsideISR();
+}
+
+void timerCallback() {
+  manager.timerCallback();
 }
 
 void setup() {
   // put your setup code here, to run once:
-  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), manager.callISR, RISING);
+  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), insideISR, RISING);
   Timer1.initialize(1000000);
-  Timer1.attachInterrupt(manager.timerCallback);
+  Timer1.attachInterrupt(timerCallback);
   manager.setSonar(TRIG, ECHO);
   manager.setPower(IN1, IN2, PWM);
   manager.setSerial(BAUD);
