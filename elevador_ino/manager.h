@@ -1,7 +1,6 @@
 #ifndef MANAGER_H
 #define MANAGER_H
 
-
 #include "Arduino.h"
 #include "sonarUtils.h"
 #include "power.h"
@@ -19,20 +18,21 @@
 #define LEVEL_TOTAL 4
 #define OPEN 1
 #define CLOSED 0
+#define INSIDE 0
+#define OUTSIDE 1
 
 using namespace std;
 
 class Manager {
   public:
+    Manager(int door_pin, int total_level);
     Manager();
     void setSonar(int trig, int echo);
     void setPower(int IN1, int IN2, int PWM);
     void setSerial(int baud);
-    void setOutputs(int led_pin, int buzzer_pin);
-    void setButtons(int IN_T_PIN, int IN_1_PIN, int IN_2_PIN, int IN_3_PIN,
-      int OUT_T_PIN, int OUT_1_PIN, int OUT_2_PIN, int OUT_3_PIN);
-    void outsideISR();
-    void insideISR();
+    void setOutputs(int led_pin);
+    void setButton(int pin, int mode, int pos);
+    void ISRCallback();
     void timerCallback();
     void run();
 
@@ -45,11 +45,10 @@ class Manager {
     Outputs outputs;
     int door_cnt;
     int door_flag;
-    bitset<LEVEL_TOTAL> in_calls;
-    bitset<LEVEL_TOTAL> out_calls;
+    int door_pin;
+    bitset<LEVEL_TOTAL> calls[2];
 
-    vector<int> out_buttons;
-    vector<int> in_buttons;
+    vector<int> buttons[2];
 
     /* Funcoes */
     void stateStopHandle();

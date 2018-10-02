@@ -1,6 +1,9 @@
 #include "manager.h"
 
-Manager::Manager() {
+Manager::Manager(int door_pin, int total_level) {
+  this->door_pin = door_pin;
+  buttons[0].resize(total_level);
+  buttons[1].resize(total_level);
 }
 
 void Manager::setSonar(int trig, int echo) {
@@ -17,24 +20,16 @@ void Manager::setSerial(int baud) {
   Serial.begin(baud);
 }
 
-void Manager::setButtons(int IN_T_PIN, int IN_1_PIN, int IN_2_PIN, int IN_3_PIN,
-    int OUT_T_PIN, int OUT_1_PIN, int OUT_2_PIN, int OUT_3_PIN) {
-  in_buttons.push_back(IN_T_PIN);
-  in_buttons.push_back(IN_1_PIN);
-  in_buttons.push_back(IN_2_PIN);
-  in_buttons.push_back(IN_3_PIN);
-
-  out_buttons.push_back(OUT_T_PIN);
-  out_buttons.push_back(OUT_1_PIN);
-  out_buttons.push_back(OUT_2_PIN);
-  out_buttons.push_back(OUT_3_PIN);
+void Manager::setButton(int pin, int mode, int pos){
+  pinMode(pin, INPUT);
+  buttons[mode][pos] = pin;
 }
 
-void Manager::setOutputs(int led_pin, int buzzer_pin) {
-  outputs = Outputs(led_pin, buzzer_pin);
+void Manager::setOutputs(int led_pin) {
+  outputs = Outputs(led_pin);
 }
 
-int Manager::getLevel() {
+int Manager::getLevel() { // CORRIGIR CODIGO DE PEGAR O ANDAR ATUAL 
   float dist = sonar.getDist();
   if (dist <= LIM_T_LEVEL) return 0;
   if (dist <= LIM_1_LEVEL) return 1;
@@ -44,22 +39,22 @@ int Manager::getLevel() {
 
 void Manager::stateStopHandle() {
   int cur_level = getLevel();
-  in_calls.set(cur_level, 0);
-  out_calls.set(cur_level, 0);
+  calls[INSIDE].set(cur_level, 0);
+  calls[OUTSIDE].set(cur_level, 0);
 
   if (!door_flag) {
     bitset<LEVEL_TOTAL> shifted;
 
-    if (in_calls != 0) {
-      shifted = in_calls >> cur_level;
+    if (calls[INSIDE] != 0) {
+      shifted = calls[INSIDE] >> cur_level;
       if (shifted != 0) {
         state = State::RISE_IN;
         return;
       }
       state = State::FALL_IN;
     }
-    else if (out_calls != 0) {
-      shifted = out_calls >> cur_level;
+    else if (calls[OUTSIDE] != 0) {
+      shifted = calls[OUTSIDE] >> cur_level;
       if (shifted != 0) {
         state = State::RISE_OUT;
         return;
@@ -74,8 +69,8 @@ void Manager::stateStopHandle() {
 
 void Manager::statePreStopHandle() {
   int cur_level = getLevel();
-  in_calls.set(cur_level, 0);
-  out_calls.set(cur_level, 0);
+  calls[INSIDE].set(cur_level, 0);
+  calls[OUTSIDE].set(cur_level, 0);
 
   if (door_flag) {
     if (door_cnt >= 10) {
@@ -90,8 +85,8 @@ void Manager::statePreStopHandle() {
 void Manager::stateRiseInHandle() {
   int cur_level = getLevel();
 
-  if (in_calls.test(cur_level)) {
-    bitset<LEVEL_TOTAL> in_calls_shifted = in_calls >> (cur_level + 1);
+  if (calls[INSIDE].test(cur_level)) {
+    bitset<LEVEL_TOTAL> in_calls_shifted = calls[INSIDE] >> (cur_level + 1);
     if (in_calls_shifted == 0) {
       next_state = State::STOP;
     }
@@ -105,14 +100,14 @@ void Manager::stateRiseInHandle() {
 
 void Manager::stateRiseOutHandle() {
   int cur_level = getLevel();
-  bitset<LEVEL_TOTAL> in_calls_shifted = in_calls >> (cur_level + 1);
+  bitset<LEVEL_TOTAL> in_calls_shifted = calls[INSIDE] >> (cur_level + 1);
 
   if (in_calls_shifted != 0) {
     state = State::RISE_IN;
     return;
   }
 
-  if (out_calls.test(cur_level)) {
+  if (calls[OUTSIDE].test(cur_level)) {
     next_state = State::STOP;
     prepareStop();
     state = State::PRE_STOP;
@@ -122,7 +117,7 @@ void Manager::stateRiseOutHandle() {
 
 void Manager::stateFallInHandle() {
   int cur_level = getLevel();
-  bitset<LEVEL_TOTAL> calls = in_calls | out_calls;
+  bitset<LEVEL_TOTAL> calls = calls[INSIDE] | calls[OUTSIDE];
 
   if (calls.test(cur_level)) {
     bitset<LEVEL_TOTAL> calls_shifted = calls << (LEVEL_TOTAL - cur_level);
@@ -140,7 +135,7 @@ void Manager::stateFallInHandle() {
 void Manager::stateFallOutHandle() {
   int cur_level = getLevel();
 
-  if (out_calls.test(cur_level)) {
+  if (calls[OUTSIDE].test(cur_level)) {
     next_state = State::STOP;
     prepareStop();
     state = State::PRE_STOP;
@@ -148,23 +143,13 @@ void Manager::stateFallOutHandle() {
 
 }
 
-
 void Manager::prepareStop() {
   door_cnt = 0;
   door_flag = OPEN;
 }
 
 void Manager::configureOutputs() {
-  if (!door_flag) {
-    outputs.setLed(LOW);
-    outputs.setBuzzer(LOW);
-  }
-  else {
-    outputs.setLed(HIGH);
-    if (door_cnt >= 5) {
-      outputs.setBuzzer(HIGH);
-    }
-  }
+  outputs.setLed(door_flag);
 }
 
 void Manager::run() {
@@ -195,23 +180,21 @@ void Manager::run() {
   configureOutputs();
 }
 
-void Manager::insideISR() {
+void Manager::ISRCallback() {
   int read;
-  for(int i = 0 ; i < (int)in_buttons.size() ; i++) {
-    read = digitalRead(in_buttons[i]);
-    if (read) {
-      in_calls.set(i, 1);
+  for (int j = 0 ; j < 2 ; j++) {
+    for(int i = 0 ; i < (int)buttons[j].size() ; i++) {
+      read = digitalRead(buttons[j][i]);
+      if (read) {
+        calls[j].set(i, 1);
+      }
     }
   }
-}
 
-void Manager::outsideISR() {
-  int read;
-  for(int i = 0 ; i < (int)out_buttons.size() ; i++) {
-    read = digitalRead(out_buttons[i]);
-    if (read) {
-      out_calls.set(i, 1);
-    }
+  read = digitalRead(door_pin);
+  if ((state == State::PRE_STOP || state == State::STOP) && read) {
+    door_flag = !door_flag;
+    delay(500);
   }
 }
 
@@ -220,6 +203,3 @@ void Manager::timerCallback() {
     door_cnt += 1;
   }
 }
-
-
-

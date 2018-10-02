@@ -5,14 +5,12 @@
 
 class Outputs {
   public:
-    Outputs(int led_pin, int buzzer_pin);
+    Outputs(int led_pin);
     Outputs();
     void setLed(int on_off);
-    void setBuzzer(int on_off);
 
   private:
     int led_pin;
-    int buzzer_pin;
 
 };
 
