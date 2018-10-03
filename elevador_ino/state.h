@@ -1,5 +1,10 @@
 #ifndef STATE_H
 #define STATE_H
+
+#include "Arduino.h"
+
+using namespace std;
+
 enum class State {
   RISE_IN,
   RISE_OUT,
@@ -8,5 +13,4 @@ enum class State {
   STOP,
   PRE_STOP
 };
-
 #endif /* ifndef STATE_H */

@@ -8,18 +8,23 @@
 #include "outputs.h"
 #include <ArduinoSTL.h>
 #include <bitset>
+#include <string>
 #include <vector>
 
-#define LIM_T_LEVEL 20
-#define LIM_1_LEVEL 40
-#define LIM_2_LEVEL 60
-#define LIM_3_LEVEL 80
+#define LIM_T_LEVEL 4
+#define LIM_1_LEVEL 24
+#define LIM_2_LEVEL 44
+#define LIM_3_LEVEL 64
+#define DX 3
 
 #define LEVEL_TOTAL 4
 #define OPEN 1
 #define CLOSED 0
 #define INSIDE 0
 #define OUTSIDE 1
+
+#define SAMPLES 5
+#define DELAY_SAMPLE 10
 
 using namespace std;
 
@@ -45,10 +50,14 @@ class Manager {
     Outputs outputs;
     int door_cnt;
     int door_flag;
+    int last_level;
+    int count;
+    double dist;
     int door_pin;
+    boolean adjust_level;
     bitset<LEVEL_TOTAL> calls[2];
-
     vector<int> buttons[2];
+    vector<int> level_pos;
 
     /* Funcoes */
     void stateStopHandle();
@@ -60,6 +69,10 @@ class Manager {
     int getLevel();
     void configureOutputs();
     void prepareStop();
+    void callbackDist();
+    void sendLog();
+    void adjustLevel();
+    String stateString(State s);
 };
 
 

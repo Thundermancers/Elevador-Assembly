@@ -1,7 +1,7 @@
 #include "outputs.h"
 
 Outputs::Outputs(){}
-Outputs::Outputs(int led_pin, int buzzer_pin) {
+Outputs::Outputs(int led_pin) {
   this->led_pin = led_pin;
 }
 

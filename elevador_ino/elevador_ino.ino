@@ -5,11 +5,6 @@
 #define INSIDE 0
 #define OUTISDE 1
 
-// Pinos do sonar
-
-#define TRIG A4
-#define ECHO A5
-
 // Interrupções
 #define INTERRUPT_PIN 2
 
@@ -42,7 +37,10 @@
 #define LED_PIN A5
 
 // Definindo Serial
-#define BAUD 9600
+#define BAUD 115200
+
+// Time
+#define TIMER_TO_CALLBACK 1000000
 
 Manager manager = Manager(OPEN_CLOSE_DOOR, TOTAL_LEVELS);
 
@@ -56,8 +54,9 @@ void timerCallback() {
 
 void setup() {
   // put your setup code here, to run once:
+  Serial.begin(BAUD);
   attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), ISRCallback, RISING);
-  Timer1.initialize(1000000);
+  Timer1.initialize(TIMER_TO_CALLBACK);
   Timer1.attachInterrupt(timerCallback);
   manager.setSonar(TRIGER, ECHO);
   manager.setPower(IN1, IN2, PWM);
