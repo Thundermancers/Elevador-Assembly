@@ -12,24 +12,29 @@ void Power::powerSetup() {
   pinMode(IN1, OUTPUT);
   pinMode(IN2, OUTPUT);
   pinMode(PWM, OUTPUT);
-}
-
-void Power::up() {
-  digitalWrite(IN1, HIGH);
-  digitalWrite(IN2, LOW);
-  analogWrite(PWM, FULL_PWM);
-}
-
-void Power::down() {
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, HIGH);
-  analogWrite(PWM, FULL_PWM);
-}
-
-void Power::stop() {
   digitalWrite(IN1, HIGH);
   digitalWrite(IN2, HIGH);
   analogWrite(PWM, 0);
+}
+
+void Power::up(int vel) {
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  analogWrite(PWM, vel);
+}
+
+void Power::down(int vel) {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  analogWrite(PWM, vel);
+}
+
+void Power::stop(State s) {
+  if (s == State::STOP || s == State::PRE_STOP) {
+    digitalWrite(IN1, HIGH);
+    digitalWrite(IN2, HIGH);
+    analogWrite(PWM, 0);
+  }
 }
 
 

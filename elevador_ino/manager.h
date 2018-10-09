@@ -16,6 +16,7 @@
 #define LIM_2_LEVEL 44
 #define LIM_3_LEVEL 64
 #define DX 3
+#define EPS 1.0
 
 #define LEVEL_TOTAL 4
 #define OPEN 1
@@ -53,8 +54,8 @@ class Manager {
     int last_level;
     int count;
     double dist;
+    double goal_dist;
     int door_pin;
-    boolean adjust_level;
     bitset<LEVEL_TOTAL> calls[2];
     vector<int> buttons[2];
     vector<int> level_pos;
@@ -71,7 +72,7 @@ class Manager {
     void prepareStop();
     void callbackDist();
     void sendLog();
-    void adjustLevel();
+    int moving();
     String stateString(State s);
 };
 
