@@ -70,7 +70,7 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), ISRCallback, RISING);
   Timer1.initialize(TIMER_TO_CALLBACK);
   Timer1.attachInterrupt(timerCallback);
-  
+  while ( !Serial );  
 }
 
 void loop() {

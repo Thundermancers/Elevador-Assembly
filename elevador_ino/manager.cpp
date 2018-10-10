@@ -5,7 +5,8 @@ Manager::Manager(int door_pin, int total_level) {
   this->dist = 0;
   this->door_pin = door_pin;
   this->state = State::STOP;
-  this->goal_dist = -1;
+  this->state = State::STOP;
+  this->goal_dist = LIM_T_LEVEL;
   this->door_flag = OPEN;
   this->door_cnt = 0;
   level_pos.resize(total_level);
@@ -51,7 +52,7 @@ void Manager::stateStopHandle() {
   int cur_level = getLevel();
   calls[INSIDE].set(cur_level, 0);
   calls[OUTSIDE].set(cur_level, 0);
-
+  if (cur_level == -1) return;
   if (!door_flag) {
     bitset<LEVEL_TOTAL> shifted;
 
@@ -84,9 +85,10 @@ void Manager::stateStopHandle() {
 void Manager::statePreStopHandle() {
 
   int cur_level = getLevel();
+  if (cur_level == -1) return;
+
   calls[INSIDE].set(cur_level, 0);
   calls[OUTSIDE].set(cur_level, 0);
-
   if (door_flag) {
     if (door_cnt >= 10) {
       door_flag = CLOSED;
@@ -104,7 +106,8 @@ void Manager::statePreStopHandle() {
 
 void Manager::stateRiseInHandle() {
   int cur_level = getLevel();
-  
+  if (cur_level == -1) return;
+
   if (calls[INSIDE].test(cur_level)) {
     bitset<LEVEL_TOTAL> in_calls_shifted = calls[INSIDE] >> (cur_level + 1);
     if (in_calls_shifted == 0) {
@@ -123,6 +126,7 @@ void Manager::stateRiseInHandle() {
 
 void Manager::stateRiseOutHandle() {
   int cur_level = getLevel();
+  if (cur_level == -1) return;
 
   bitset<LEVEL_TOTAL> in_calls_shifted = calls[INSIDE] >> (cur_level + 1);
 
@@ -144,11 +148,12 @@ void Manager::stateRiseOutHandle() {
 
 void Manager::stateFallInHandle() {
   int cur_level = getLevel();
+  if (cur_level == -1) return;
 
-  bitset<LEVEL_TOTAL> calls = calls[INSIDE] | calls[OUTSIDE];
+  bitset<LEVEL_TOTAL> all_calls = calls[INSIDE] | calls[OUTSIDE];
 
-  if (calls.test(cur_level)) {
-    bitset<LEVEL_TOTAL> calls_shifted = calls << (LEVEL_TOTAL - cur_level);
+  if (all_calls.test(cur_level)) {
+    bitset<LEVEL_TOTAL> calls_shifted = all_calls << (LEVEL_TOTAL - cur_level);
     if (calls_shifted != 0) {
       next_state = State::FALL_IN;
     }
@@ -165,6 +170,7 @@ void Manager::stateFallInHandle() {
 
 void Manager::stateFallOutHandle() {
   int cur_level = getLevel();
+  if (cur_level == -1) return;
 
   if (calls[OUTSIDE].test(cur_level)) {
     next_state = State::STOP;
@@ -187,14 +193,17 @@ void Manager::configureOutputs() {
 }
 
 void Manager::run() {
+  /*if ( Serial.available() > 0 ) {
+    String input = Serial.readString();
+    goal_dist = input.toInt();
+  }*/
   callbackDist();
-  moving();
+  flag_stop = moving();
   configureOutputs();
 
 }
 
 int Manager::moving() {
-  if (goal_dist == -1) return 1;
   double error = goal_dist - dist;
   if( fabs(error) <= EPS ) {
     if (state == State::RISE_IN) { stateRiseInHandle(); }
@@ -208,10 +217,10 @@ int Manager::moving() {
   }
   else {
     if( error > 0 ) {
-      power.up(255);      
+      power.up(200);      
     }
     else {
-      power.down(255);
+      power.down(120);
     }
     return 0;
   }
@@ -229,6 +238,7 @@ void Manager::ISRCallback() {
 
   read = digitalRead(door_pin);
   if ((state == State::PRE_STOP || state == State::STOP) && read) {
+    if (!door_flag) door_cnt = 0;
     door_flag = !door_flag;
     delay(50);
   }
@@ -238,11 +248,24 @@ void Manager::timerCallback() {
   if ((state == State::PRE_STOP || state == State::STOP) && door_flag) {
       door_cnt += 1;
   }
+  if (door_cnt >= 10) door_flag = CLOSED;
   sendLog();
 }
 
 void Manager::callbackDist() {
-  dist = sonar.getDist();
+  double sum = 0;
+  double valueMin = 1<<10; // 2^10
+  double valueMax = - 1<<10; // - 2^10
+  // Amostras de alturas
+  for( int i = 0 ; i < SAMPLES ; ++i ) {
+    double h = sonar.getDist();
+    sum += h;
+    valueMin = min(valueMin, h);
+    valueMax = max(valueMax, h);
+    delay( DELAY_SAMPLE );
+  }
+  // Retirar possíveis ruídos
+  dist = ( sum - valueMin - valueMax )/( SAMPLES - 2 );
 }
 
 
@@ -268,11 +291,21 @@ String Manager::stateString(State s) {
 
 void Manager::sendLog() {
   Serial.println("");
-  Serial.print("State: ");
+  Serial.print("S: ");
   Serial.println(stateString(state));
-  Serial.print("Dist: ");
+  Serial.print("NS: ");
+  Serial.println(stateString(next_state));
+  Serial.print("door: ");
+  Serial.println(door_flag);
+  Serial.print("door_cng: ");
+  Serial.println(door_cnt);
+  Serial.print("D: ");
   Serial.println(dist);
-  Serial.print("Level: ");
+  Serial.print("G_D: ");
+  Serial.println(goal_dist);
+  Serial.print("F_S: ");
+  Serial.println(flag_stop);
+  Serial.print("Lvl: ");
   Serial.println(getLevel());
   Serial.print("in: ");
   for (int i = 0 ; i < 4 ; i++) {

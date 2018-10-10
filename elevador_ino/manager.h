@@ -56,6 +56,7 @@ class Manager {
     double dist;
     double goal_dist;
     int door_pin;
+    int flag_stop;
     bitset<LEVEL_TOTAL> calls[2];
     vector<int> buttons[2];
     vector<int> level_pos;
