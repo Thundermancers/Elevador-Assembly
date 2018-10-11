@@ -11,12 +11,12 @@
 #include <string>
 #include <vector>
 
-#define LIM_T_LEVEL 4
+#define LIM_T_LEVEL 6
 #define LIM_1_LEVEL 24
 #define LIM_2_LEVEL 44
 #define LIM_3_LEVEL 64
 #define DX 3
-#define EPS 1.0
+#define EPS 0.5
 
 #define LEVEL_TOTAL 4
 #define OPEN 1
@@ -54,6 +54,7 @@ class Manager {
     int last_level;
     int count;
     double dist;
+    double dist_old;
     double goal_dist;
     int door_pin;
     int flag_stop;
@@ -75,6 +76,8 @@ class Manager {
     void sendLog();
     int moving();
     String stateString(State s);
+    double distCalibrationLinear(double d);
+    double distCalibrationDeg8(double d);
 };
 
 

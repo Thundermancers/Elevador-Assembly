@@ -3,6 +3,7 @@
 Manager::Manager(int door_pin, int total_level) {
   this->count = 0;
   this->dist = 0;
+  this->dist_old = 0;
   this->door_pin = door_pin;
   this->state = State::STOP;
   this->state = State::STOP;
@@ -252,6 +253,33 @@ void Manager::timerCallback() {
   sendLog();
 }
 
+double Manager::distCalibrationLinear(double d) {
+  double p1 = 1.068;
+  double p2 = 1.314;
+  return p1 * d + p2;
+}
+
+double Manager::distCalibrationDeg8(double d) {
+  double p1 = 5.29e-11;
+  double p2 = -1.415e-8;
+  double p3 = 1.553e-6;
+  double p4 = -9.032e-5;
+  double p5 = 0.002993;
+  double p6 = -0.05626;
+  double p7 = 0.5552;
+  double p8 = -1.233;
+  double p9 = 3.526;
+  double coeffs[] = {p1, p2, p3, p4, p5, p6, p7, p8, p9};
+  double sum = 0;
+  double k = 1;
+  for (int i = 8 ; i >= 0 ; i--) {
+    sum += k*coeffs[i];
+    k *= d;
+
+  }
+  return sum;
+}
+
 void Manager::callbackDist() {
   double sum = 0;
   double valueMin = 1<<10; // 2^10
@@ -265,7 +293,12 @@ void Manager::callbackDist() {
     delay( DELAY_SAMPLE );
   }
   // Retirar possíveis ruídos
-  dist = ( sum - valueMin - valueMax )/( SAMPLES - 2 );
+  dist_old = ( sum - valueMin - valueMax )/( SAMPLES - 2 );
+  if (goal_dist == 64)
+    dist = distCalibrationLinear(dist_old);
+  else
+    dist = distCalibrationDeg8(dist_old);
+  
 }
 
 
@@ -301,6 +334,8 @@ void Manager::sendLog() {
   Serial.println(door_cnt);
   Serial.print("D: ");
   Serial.println(dist);
+  Serial.print("D_o: ");
+  Serial.println(dist_old);
   Serial.print("G_D: ");
   Serial.println(goal_dist);
   Serial.print("F_S: ");
