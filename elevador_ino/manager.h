@@ -16,7 +16,7 @@
 #define LIM_2_LEVEL 44
 #define LIM_3_LEVEL 64
 #define DX 3
-#define EPS 0.5
+#define EPS 1.0
 #define ENDSEND "&"
 #define SPACE "#"
 

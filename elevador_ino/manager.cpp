@@ -290,7 +290,7 @@ void Manager::callbackDist() {
   }
   // Retirar possíveis ruídos
   dist_old = ( sum - valueMin - valueMax )/( SAMPLES - 2 );
-  if (goal_dist == 64)
+  if (goal_dist >= 35)
     dist = distCalibrationLinear(dist_old);
   else
     dist = distCalibrationDeg8(dist_old);
