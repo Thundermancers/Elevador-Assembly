@@ -217,7 +217,7 @@ int Manager::moving() {
       power.up(200);      
     }
     else {
-      power.down(120);
+      power.down(100);
     }
     return 0;
   }

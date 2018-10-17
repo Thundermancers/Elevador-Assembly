@@ -38,7 +38,7 @@ class Manager {
     Manager();
     void setSonar(int trig, int echo);
     void setPower(int IN1, int IN2, int PWM);
-    void setOutputs(int led_pin);
+    void setOutputs(int led_pin, int display_0, int display_1);
     void setButton(int pin, int mode, int pos);
     void ISRCallback();
     void timerCallback();
