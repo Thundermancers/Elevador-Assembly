@@ -49,6 +49,6 @@ Os requisitos com relação ao funcionamento são:
 
 ## Imagens
 ### Arduino
-![a](/imgs/lcd1.jpg = 100x)
-![a](/imgs/lcd2.jpg = 100x)
-![a](/imgs/lcd3.jpg = 100x)
+![](/imgs/lcd1.jpg)
+![](/imgs/lcd2.jpg)
+![](/imgs/lcd3.jpg)
