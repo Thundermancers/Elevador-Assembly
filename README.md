@@ -18,7 +18,7 @@ Os requisitos com relação a estrutura são:
 #### Funcionamento
 Os requisitos com relação ao funcionamento são:
 * Priorizar os andares mais altos;
-** Por exemplo: Se estiver no térreo subindo para o 4º andar, não deve parar no 2º andar, mesmo que o botão que fica no segundo andar tenha sido pressionado antes de o carro do elevador passar pelo 2° andar.
+  ** Por exemplo: Se estiver no térreo subindo para o 4º andar, não deve parar no 2º andar, mesmo que o botão que fica no segundo andar tenha sido pressionado antes de o carro do elevador passar pelo 2° andar.
 * Se a porta do elevador ficar aberta por 5 segundos, toca-se o Buzzer;
 * Se a porta do elevador ficar aberta por 10s, a porta é automaticamente fechada;
 * O elevador leva 3 segundos de um andar para o outro.
@@ -40,3 +40,12 @@ Os requisitos com relação ao funcionamento são:
 ** Por exemplo: Se estiver no térreo subindo para o 4º andar, não deve parar no 2º andar, mesmo que o botão que fica no segundo andar tenha sido pressionado antes de o carro do elevador passar pelo 2° andar.
 * Se a porta do elevador ficar aberta por 10s, a porta é automaticamente fechada.
 * Enviar log pela serial
+
+## Vídeos
+### Assembly
+[Video do funcionamento do elevador em assembly](https://www.youtube.com/watch?v=NJsJVgUABao&feature=youtu.be)
+### Arduino
+[Video do funcionamento do elevador em arduino](https://youtu.be/CorqOT0HRPI)
+
+## Imagens
+### Arduino
