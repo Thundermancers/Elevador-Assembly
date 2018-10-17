@@ -5,10 +5,10 @@
 #define INSIDE 0
 #define OUTISDE 1
 
-// Pino de interrupção
+// Interrupções
 #define INTERRUPT_PIN 2
 
-// Pinos do motor
+// Pinos do motor (ALTERAR)
 #define PWM 3
 #define IN1 4
 #define IN2 5
@@ -23,20 +23,17 @@
 #define OUTSIDE_CALL_2 10
 #define OUTSIDE_CALL_3 11
 
-// Pinos do display de 7 segmentos
-#define DISPLAY1 12
-#define DISPLAY2 13
+// Pinos do display
+#define DISPLAY_0 12
+#define DISPLAY_1 13
 
 // Pinos da chamada interna
+
 #define INSIDE_CALL_T A0
 #define INSIDE_CALL_1 A1
 #define INSIDE_CALL_2 A2
 #define INSIDE_CALL_3 A3
-
-// Pino da porta
 #define OPEN_CLOSE_DOOR A4
-
-// Pino do led da porta
 #define LED_PIN A5
 
 // Definindo Serial
@@ -56,10 +53,12 @@ void timerCallback() {
 }
 
 void setup() {
+  // put your setup code here, to run once:
   Serial.begin(BAUD);
   manager.setSonar(TRIGER, ECHO);
   manager.setPower(IN1, IN2, PWM);
-  manager.setOutputs(LED_PIN);
+  manager.setSerial(BAUD);
+  manager.setOutputs(LED_PIN, DISPLAY_0, DISPLAY_1);
   int in_buttons[] = {INSIDE_CALL_T, INSIDE_CALL_1, INSIDE_CALL_2, INSIDE_CALL_3};
   for (int i = 0 ; i < TOTAL_LEVELS ; i++) {
     manager.setButton(in_buttons[i], INSIDE, i);
@@ -71,8 +70,11 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), ISRCallback, RISING);
   Timer1.initialize(TIMER_TO_CALLBACK);
   Timer1.attachInterrupt(timerCallback);
+  while ( !Serial );  
 }
 
 void loop() {
+  // put your main code here, to run repeatedly:
   manager.run();
+
 }
