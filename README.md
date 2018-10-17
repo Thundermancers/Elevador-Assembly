@@ -49,6 +49,6 @@ Os requisitos com relação ao funcionamento são:
 
 ## Imagens
 ### Arduino
-[Log no lcd no modo "State Log"](/imgs/lcd1.jpg)
-[Log no lcd no modo "State Log"](/imgs/lcd2.jpg)
-[Log no lcd no modo "State Log"](/imgs/lcd3.jpg)
+![Log no lcd no modo "State Log"](/imgs/lcd1.jpg)
+![Log no lcd no modo "State Log"](/imgs/lcd2.jpg)
+![Log no lcd no modo "State Log"](/imgs/lcd3.jpg)
