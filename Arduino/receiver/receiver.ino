@@ -1,5 +1,6 @@
 //Carrega a biblioteca LiquidCrystal
 #include <LiquidCrystal.h>
+#include "TimerOne.h"
 
 #define SIZE_MSG 50
 
@@ -18,8 +19,9 @@
 
 #define NEXT_BUTTON_PIN 2
 #define PREV_BUTTON_PIN 3
-#define DELAY_DEBOUNCE 50
+#define DELAY_DEBOUNCE 100
 
+#define TIMER_TO_CALLBACK 1000000
 
 //Define os pinos que serão utilizados para ligação ao display
 LiquidCrystal lcd(13, 12, 11, 10, 9, 8);
@@ -43,16 +45,20 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(NEXT_BUTTON_PIN), nextButtonISR, RISING);
   attachInterrupt(digitalPinToInterrupt(PREV_BUTTON_PIN), prevButtonISR, RISING);
   while( !Serial );
+  Timer1.initialize(TIMER_TO_CALLBACK);
+  Timer1.attachInterrupt(timerCallback);
   lcd.begin(20, 4);
 }
 
 void nextButtonISR() {
   msg_state = (msg_state +  1) % 3;
+  prepareLog();
   delay(DELAY_DEBOUNCE);
 }
 
 void prevButtonISR() {
   msg_state = (msg_state + 2) % 3;
+  prepareLog();
   delay(DELAY_DEBOUNCE);
 }
 
@@ -77,22 +83,23 @@ void writeLog(String s) {
     next_state = expandState(s.substring(OFFSET_NEXT_STATE, OFFSET_NEXT_STATE+2));
     lcd.setCursor(0, 0);
     lcd.print("MODO: STATE_LOG");
-    lcd.setCursor(0, 1);
-    lcd.print("STATE:" + cur_state);
     lcd.setCursor(0, 2);
-    lcd.print("N_STATE:" + next_state);
+    lcd.print("STATE:" + cur_state);
+    lcd.setCursor(0, 3);
+    lcd.print("NEXT_STATE:" + next_state);
   }
   else if (msg_state == DOOR_LOG) {
     lcd.setCursor(0, 0);
-    lcd.print("MODO: STATE_LOG");
-    lcd.setCursor(0, 1);
+    lcd.print("MODO: DOOR_LOG");
+    lcd.setCursor(0, 2);
     if (s[OFFSET_DOOR_STATE] == '1')
       lcd.print("DOOR_STATE: OPEN" );
     else if (s[OFFSET_DOOR_STATE] == '0')
       lcd.print("DOOR_STATE: CLOSED" );  
-    lcd.setCursor(0, 2);
-    lcd.print("DOOR_COUNT:" + s[OFFSET_DOOR_COUNT]);
-    lcd.print(s[OFFSET_DOOR_COUNT + 1]);
+    lcd.setCursor(0, 3);
+    lcd.print("DOOR_COUNT: ");
+    String x = String(s[OFFSET_DOOR_COUNT]) + String(s[OFFSET_DOOR_COUNT + 1]);
+    lcd.print(x);
   }
   else if (msg_state == CALLS_LOG) {
     // PRIMEIRA LINHA
@@ -101,46 +108,33 @@ void writeLog(String s) {
 
     // SEGUNDA LINHA
     lcd.setCursor(4, 1);
-    lcd.print("T");
-    lcd.setCursor(6, 1);
-    lcd.print("1");
-    lcd.setCursor(8, 1);
-    lcd.print("2");
-    lcd.setCursor(10, 1);
-    lcd.print("3");
-    lcd.setCursor(13, 1);
-    lcd.print("|");
-    
+    lcd.print("T 1 2 3 |");
     // TERCEIRA LINHA
+    String x = String(s[OFFSET_IN_CALLS])+ " " + String(s[OFFSET_IN_CALLS + 1]) + " " + String(s[OFFSET_IN_CALLS + 2]) + " " + String(s[OFFSET_IN_CALLS + 3]) + " ";
     lcd.setCursor(0, 2);
-    lcd.print("IN:");
-    lcd.setCursor(4, 2);
-    lcd.print(s[OFFSET_IN_CALLS]);
-    lcd.setCursor(6, 2);
-    lcd.print(s[OFFSET_IN_CALLS + 1]);
-    lcd.setCursor(8, 2);
-    lcd.print(s[OFFSET_IN_CALLS + 2]);
-    lcd.setCursor(10, 2);
-    lcd.print(s[OFFSET_IN_CALLS + 3]);
-    lcd.setCursor(13, 2);
+    lcd.print("IN: ");
+    lcd.print(x);
     lcd.print("|");
-    lcd.print("Lvl:" + s[OFFSET_LEVEL]);
+    if (String(s[OFFSET_LEVEL]) == "X")
+      lcd.print(" LVL:" + level);
+    else {
+      level = String(s[OFFSET_LEVEL]);
+      lcd.print(" LVL:" + String(s[OFFSET_LEVEL]));
+    }
     
 
     // QUARTA LINHA
+    x = String(s[OFFSET_OUT_CALLS])+ " " + String(s[OFFSET_OUT_CALLS + 1]) + " " + String(s[OFFSET_OUT_CALLS + 2]) + " " + String(s[OFFSET_OUT_CALLS + 3]) + " ";
     lcd.setCursor(0, 3);
     lcd.print("OUT:");
-    lcd.setCursor(4, 3);
-    lcd.print(s[OFFSET_OUT_CALLS]);
-    lcd.setCursor(6, 3);
-    lcd.print(s[OFFSET_OUT_CALLS + 1]);
-    lcd.setCursor(8, 3);
-    lcd.print(s[OFFSET_OUT_CALLS + 2]);
-    lcd.setCursor(10, 3);
-    lcd.print(s[OFFSET_OUT_CALLS + 3]);
-    lcd.setCursor(13, 3);
+    lcd.print(x);
     lcd.print("|");
-    lcd.print("nLvl:" + s[OFFSET_LEVEL]);
+    if (String(s[OFFSET_NEXT_LEVEL]) == "X")
+      lcd.print(" DES:" + next_level);
+    else {
+      lcd.print(" DES:" + String(s[OFFSET_NEXT_LEVEL]));
+      next_level = String(s[OFFSET_NEXT_LEVEL]);
+    }
   }
 }
 
@@ -151,7 +145,11 @@ void clearLCD() {
   lcd.setCursor(0, 0);
 }
 
-void loop() {
+int stringValidation(String x) {
+  return (x[5] == '#' && x[11] == '#' && x[16] == '#' && x[22] == '#' && x[27] == '#' && x[32] == '#' && x[40] == '#');
+}
+
+void timerCallback() {
   int i = 0;
   char c = 'i';
   while (Serial.available() > 0) {
@@ -161,12 +159,22 @@ void loop() {
     log_str[i++] = c;
     c = Serial.read();
     if (c == '&') {
-      clearLCD();
-      writeLog(String(log_str));
-      Serial.println(log_str);
       break;
-    }
+    } 
   }
-  delay(1000);
+  prepareLog();
 }
+
+void prepareLog() {
+  if (stringValidation(String(log_str))){
+    clearLCD();
+    writeLog(String(log_str));  
+    Serial.println(log_str);
+  }
+  else {
+    Serial.println("Erro, msg inválida! -> " + String(log_str));
+  }
+}
+
+void loop() {}
 
