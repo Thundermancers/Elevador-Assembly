@@ -17,6 +17,8 @@
 #define LIM_3_LEVEL 64
 #define DX 3
 #define EPS 0.5
+#define ENDSEND "&"
+#define SPACE "#"
 
 #define LEVEL_TOTAL 4
 #define OPEN 1
@@ -26,6 +28,7 @@
 
 #define SAMPLES 5
 #define DELAY_SAMPLE 10
+#define SIZE_MSG 50
 
 using namespace std;
 
@@ -35,7 +38,6 @@ class Manager {
     Manager();
     void setSonar(int trig, int echo);
     void setPower(int IN1, int IN2, int PWM);
-    void setSerial(int baud);
     void setOutputs(int led_pin);
     void setButton(int pin, int mode, int pos);
     void ISRCallback();
@@ -75,9 +77,12 @@ class Manager {
     void callbackDist();
     void sendLog();
     int moving();
+    String levelToString(int lvl);
+    String countToString(int dc);
     String stateString(State s);
     double distCalibrationLinear(double d);
     double distCalibrationDeg8(double d);
+    void sendToRcv(String log_string);
 };
 
 
