@@ -29,9 +29,6 @@ void Manager::setPower(int IN1, int IN2, int PWM) {
   power.powerSetup();
 }
 
-void Manager::setSerial(int baud) {
-}
-
 void Manager::setButton(int pin, int mode, int pos){
   pinMode(pin, INPUT);
   buttons[mode][pos] = pin;
@@ -41,7 +38,7 @@ void Manager::setOutputs(int led_pin, int display_0, int display_1) {
   outputs = Outputs(led_pin, display_0, display_1);
 }
 
-int Manager::getLevel() { // CORRIGIR CODIGO DE PEGAR O ANDAR ATUAL 
+int Manager::getLevel() {
   if (fabs(dist - LIM_T_LEVEL) < EPS) return 0;
   if (fabs(dist - LIM_1_LEVEL) < EPS) return 1;
   if (fabs(dist - LIM_2_LEVEL) < EPS) return 2;
@@ -198,14 +195,9 @@ void Manager::configureOutputs() {
 }
 
 void Manager::run() {
-  /*if ( Serial.available() > 0 ) {
-    String input = Serial.readString();
-    goal_dist = input.toInt();
-  }*/
   callbackDist();
   flag_stop = moving();
   configureOutputs();
-
 }
 
 int Manager::moving() {
@@ -305,56 +297,70 @@ void Manager::callbackDist() {
   
 }
 
-
 String Manager::stateString(State s) {
   switch (s) {
     case State::RISE_IN :
-      return "RISE_IN";
+      return "RI";
     case State::RISE_OUT :
-      return "RISE_OUT";
+      return "RO";
     case State::FALL_IN :
-      return "FALL_IN";
+      return "FI";
     case State::FALL_OUT :
-      return "FALL_OUT";
+      return "FO";
     case State::PRE_STOP :
-      return "PRE_STOP";
+      return "PS";
     case State::STOP :
-      return "STOP";
+      return "ST";
     default:
-        return "ESTADO MALUCO";
+      return "??";
   }
 }
 
+String Manager::countToString(int dc) {
+  String a = "XX";
+  if( dc <= 10 && dc >= 0)  {
+    a = (dc/10);
+    a += (dc%10);  
+  }
+  return a;
+}
+
+String Manager::levelToString(int lvl) {
+  String a = "X";
+  if(lvl >= 0) {
+    a = lvl;     
+  }
+  return a;
+}
 
 void Manager::sendLog() {
-  Serial.println("");
-  Serial.print("S: ");
-  Serial.println(stateString(state));
-  Serial.print("NS: ");
-  Serial.println(stateString(next_state));
-  Serial.print("door: ");
-  Serial.println(door_flag);
-  Serial.print("door_cng: ");
-  Serial.println(door_cnt);
-  Serial.print("D: ");
-  Serial.println(dist);
-  Serial.print("D_o: ");
-  Serial.println(dist_old);
-  Serial.print("G_D: ");
-  Serial.println(goal_dist);
-  Serial.print("F_S: ");
-  Serial.println(flag_stop);
-  Serial.print("Lvl: ");
-  Serial.println(getLevel());
-  Serial.print("in: ");
+  String log_string = "", s = "";
+  log_string += "AS_" + stateString(state) + SPACE;
+  log_string += "NS_" + stateString(next_state) + SPACE;
+  s = int(door_flag);
+  log_string += "DS_" + s + SPACE;
+  log_string += "CD_" + countToString(door_cnt) + SPACE;
+  log_string += "LV_" + levelToString(getLevel()) + SPACE;
+  log_string += "NL_" + levelToString(goal_dist/20) + SPACE;
+  s = "";
   for (int i = 0 ; i < 4 ; i++) {
-    Serial.print(calls[INSIDE][i]);
+    s += int(calls[INSIDE][i]);
   }
-  Serial.println();
-  Serial.print("out: ");
+  log_string += "IN_" + s + SPACE;
+  s = "";
   for (int i = 0 ; i < 4 ; i++) {
-    Serial.print(calls[OUTSIDE][i]);
+    s += int(calls[OUTSIDE][i]);
   }
-  Serial.println();
-  Serial.println("");
+  log_string += "OT_" + s;
+  log_string += ENDSEND; 
+  log_string += "\n";
+  sendToRcv(log_string);
+}
+
+void Manager::sendToRcv(String log_string){
+  char logchar[60];
+  for ( int i = 0 ; i < SIZE_MSG ; ++i ){
+    logchar[i] = log_string[i];
+  }
+  Serial.write(logchar,SIZE_MSG);
 }

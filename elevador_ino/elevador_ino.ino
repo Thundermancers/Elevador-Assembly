@@ -5,10 +5,10 @@
 #define INSIDE 0
 #define OUTISDE 1
 
-// Interrupções
+// Pino de interrupção
 #define INTERRUPT_PIN 2
 
-// Pinos do motor (ALTERAR)
+// Pinos do motor
 #define PWM 3
 #define IN1 4
 #define IN2 5
@@ -23,7 +23,7 @@
 #define OUTSIDE_CALL_2 10
 #define OUTSIDE_CALL_3 11
 
-// Pinos do display
+// Pinos do display de 7 segmentos
 #define DISPLAY_0 12
 #define DISPLAY_1 13
 
@@ -57,7 +57,6 @@ void setup() {
   Serial.begin(BAUD);
   manager.setSonar(TRIGER, ECHO);
   manager.setPower(IN1, IN2, PWM);
-  manager.setSerial(BAUD);
   manager.setOutputs(LED_PIN, DISPLAY_0, DISPLAY_1);
   int in_buttons[] = {INSIDE_CALL_T, INSIDE_CALL_1, INSIDE_CALL_2, INSIDE_CALL_3};
   for (int i = 0 ; i < TOTAL_LEVELS ; i++) {
@@ -70,7 +69,6 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), ISRCallback, RISING);
   Timer1.initialize(TIMER_TO_CALLBACK);
   Timer1.attachInterrupt(timerCallback);
-  while ( !Serial );  
 }
 
 void loop() {
